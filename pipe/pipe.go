@@ -3,11 +3,12 @@ package pipe
 import (
 	"context"
 	"fmt"
-	"github.com/magefile/mage/mg"
 	"io"
 	"log"
 	"os/exec"
 	"strings"
+
+	"github.com/magefile/mage/mg"
 )
 
 type PipedCmd struct {
@@ -52,6 +53,7 @@ func (p *PipedCmd) Execute(ctx context.Context, stdin io.Reader, stdout io.Write
 	// Setup and start each command
 	commands := make([]*exec.Cmd, 0)
 	for current := p; current != nil; current = current.readFrom {
+		//nolint:gosec
 		cmd := exec.CommandContext(cmdCtx, current.cmd, current.args...)
 		cmd.Stderr = stderr
 		cmd.Env = current.env

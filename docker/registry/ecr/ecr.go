@@ -12,7 +12,7 @@ import (
 
 type Ecr struct {
 	AwsDefaultRegion string
-	AccountId        string
+	AccountID        string
 }
 
 var _ registry.Registry = &Ecr{}
@@ -20,12 +20,12 @@ var _ registry.Registry = &Ecr{}
 func New(e env.Env) *Ecr {
 	return &Ecr{
 		AwsDefaultRegion: e.GetDefault("AWS_DEFAULT_REGION", "us-west-2"),
-		AccountId:        e.GetDefault("AWS_ACCOUNT_ID", "0"),
+		AccountID:        e.GetDefault("AWS_ACCOUNT_ID", "0"),
 	}
 }
 
 func (e Ecr) ContainerRegistry() string {
-	return fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", e.AccountId, e.AwsDefaultRegion)
+	return fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", e.AccountID, e.AwsDefaultRegion)
 }
 
 // Log into ECR

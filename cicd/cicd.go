@@ -41,7 +41,7 @@ func MustCreate() CiCd {
 }
 
 type CiCd interface {
-	IncrementalId() string
+	IncrementalID() string
 	GitRef() string
 	GitSHA() string
 	GitRepository() string
@@ -52,7 +52,7 @@ type Local struct {
 	Env *env.Env
 }
 
-func (l *Local) IncrementalId() string {
+func (l *Local) IncrementalID() string {
 	return strconv.FormatInt(time.Now().Unix(), 10)
 }
 

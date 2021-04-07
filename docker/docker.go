@@ -71,7 +71,7 @@ func (d Docker) Tag(ci cicd.CiCd, g git.Git) string {
 		return d.SanitizeTag(t)
 	}
 	branch := trimLen(g.BranchName(ref), 60)
-	id := fmt.Sprintf("%s.%s", ci.Name(), ci.IncrementalId())
+	id := fmt.Sprintf("%s.%s", ci.Name(), ci.IncrementalID())
 	sha := ci.GitSHA()
 	if sha == "" {
 		sha = g.GitSHA()

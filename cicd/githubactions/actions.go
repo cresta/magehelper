@@ -29,7 +29,7 @@ func (f *Factory) New() (cicd.CiCd, error) {
 
 var _ cicd.CiCd = &GithubActions{}
 
-func (g *GithubActions) IncrementalId() string {
+func (g *GithubActions) IncrementalID() string {
 	return g.Env.Get("GITHUB_RUN_NUMBER")
 }
 

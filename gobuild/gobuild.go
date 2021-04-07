@@ -3,8 +3,9 @@ package gobuild
 import (
 	"context"
 	"fmt"
-	"github.com/magefile/mage/mg"
 	"os"
+
+	"github.com/magefile/mage/mg"
 
 	"github.com/cresta/magehelper/env"
 	"github.com/cresta/magehelper/pipe"
