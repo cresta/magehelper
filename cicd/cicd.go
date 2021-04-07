@@ -1,9 +1,10 @@
 package cicd
 
 import (
-	"github.com/cresta/magehelper/env"
 	"strconv"
 	"time"
+
+	"github.com/cresta/magehelper/env"
 )
 
 type registry struct {

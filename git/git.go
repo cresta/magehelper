@@ -1,8 +1,9 @@
 package git
 
 import (
-	"github.com/magefile/mage/sh"
 	"strings"
+
+	"github.com/magefile/mage/sh"
 )
 
 type Git struct{}

@@ -3,8 +3,9 @@ package errhelp
 import (
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestErrInt(t *testing.T) {

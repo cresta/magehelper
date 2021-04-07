@@ -3,13 +3,17 @@ package pipe
 import (
 	"context"
 	"fmt"
+	"github.com/magefile/mage/mg"
 	"io"
+	"log"
 	"os/exec"
+	"strings"
 )
 
 type PipedCmd struct {
 	cmd      string
 	args     []string
+	env      []string
 	readFrom *PipedCmd
 	pipeTo   *PipedCmd
 }
@@ -19,6 +23,11 @@ func NewPiped(cmd string, args ...string) *PipedCmd {
 		cmd:  cmd,
 		args: args,
 	}
+}
+
+func (p *PipedCmd) WithEnv(e []string) *PipedCmd {
+	p.env = e
+	return p
 }
 
 func (p *PipedCmd) Pipe(cmd string, args ...string) *PipedCmd {
@@ -45,10 +54,14 @@ func (p *PipedCmd) Execute(ctx context.Context, stdin io.Reader, stdout io.Write
 	for current := p; current != nil; current = current.readFrom {
 		cmd := exec.CommandContext(cmdCtx, current.cmd, current.args...)
 		cmd.Stderr = stderr
+		cmd.Env = current.env
 		// put the last Pipe() at the first of commands
 		commands = append([]*exec.Cmd{cmd}, commands...)
 	}
 	for idx := range commands {
+		if mg.Verbose() {
+			log.Println("Running command", commands[idx].Path, strings.Join(commands[idx].Args, " "))
+		}
 		if idx == 0 {
 			commands[idx].Stdin = stdin
 		} else {

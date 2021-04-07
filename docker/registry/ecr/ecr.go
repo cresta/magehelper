@@ -3,10 +3,11 @@ package ecr
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/cresta/magehelper/docker/registry"
 	"github.com/cresta/magehelper/env"
 	"github.com/cresta/magehelper/pipe"
-	"os"
 )
 
 type Ecr struct {

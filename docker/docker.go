@@ -2,14 +2,15 @@ package docker
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
 	"github.com/cresta/magehelper/env"
 	"github.com/cresta/magehelper/files"
 	"github.com/cresta/magehelper/git"
 	"github.com/magefile/mage/sh"
-	"regexp"
-	"strings"
 )
 
 func trimLen(s string, maxLen int) string {
