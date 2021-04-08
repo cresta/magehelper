@@ -1,0 +1,19 @@
+name: Build Project
+
+
+on: [push]
+
+jobs:
+  build:
+    name: Build docker container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+      - name: Run Mage
+        uses: magefile/mage-action@v1
+        with:
+          version: latest
+          args: go:lint go:test
