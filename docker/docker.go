@@ -3,10 +3,11 @@ package docker
 import (
 	"context"
 	"fmt"
-	"github.com/cresta/magehelper/pipe"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/cresta/magehelper/pipe"
 
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
@@ -33,7 +34,7 @@ type Docker struct {
 
 func (d *Docker) registry() registry.Registry {
 	if d.Registry == nil {
-		panic("Please set docker registry")
+		return registry.Instance
 	}
 	return d.Registry
 }
@@ -53,7 +54,11 @@ func (d *Docker) git() *git.Git {
 }
 
 func (d *Docker) Image() string {
-	return fmt.Sprintf("%s/%s:%s", d.registry().ContainerRegistry(), d.Repository(), d.Tag())
+	reg := d.registry().ContainerRegistry()
+	if reg != "" {
+		reg += "/"
+	}
+	return fmt.Sprintf("%s%s:%s", reg, d.Repository(), d.Tag())
 }
 
 func (d *Docker) SanitizeTag(s string) string {
@@ -133,7 +138,10 @@ func (d *Docker) Build(ctx context.Context) error {
 	if files.IsDir(cacheTo) {
 		args = append(args, fmt.Sprintf("--cache-from=type=local,src=%s", cacheTo))
 	}
-	args = append(args, fmt.Sprintf("--cache-to=type=local,dest=%s", cacheTo), "-t", image, ".")
+	if df := d.Env.Get("DOCKER_FILE"); df != "" {
+		args = append(args, "-f", df)
+	}
+	args = append(args, fmt.Sprintf("--cache-to=type=local,dest=%s", cacheTo), "-t", image, d.Env.GetDefault("DOCKER_BUILD_ROOT", "."))
 	return pipe.NewPiped("docker", args...).Run(ctx)
 }
 
@@ -170,21 +178,22 @@ func (d *Docker) Lint(ctx context.Context) error {
 }
 
 func (d *Docker) RotateCache(ctx context.Context) error {
-	from := d.BuildxCacheFrom()
 	to := d.BuildxCacheTo()
+	if !files.IsDir(to) {
+		fmt.Printf("no to directory to rotate into new: %s\n", to)
+		return nil
+	}
+	from := d.BuildxCacheFrom()
 	if files.IsDir(from) {
+		fmt.Printf("removing directory %s\n", from)
 		if err := os.RemoveAll(from); err != nil {
 			return err
 		}
 	} else {
 		fmt.Printf("no from directory to remove: %s\n", from)
 	}
-	if files.IsDir(to) {
-		return os.Rename(to, from)
-	} else {
-		fmt.Printf("no to directory to rename: %s\n", to)
-	}
-	return nil
+	fmt.Printf("renaming %s -> %s\n", to, from)
+	return os.Rename(to, from)
 }
 
 // Lint a dockerfile using hadolint

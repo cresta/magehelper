@@ -3,6 +3,7 @@ package shellcheck
 import (
 	"context"
 	"fmt"
+
 	"github.com/cresta/magehelper/files"
 	"github.com/cresta/magehelper/pipe"
 )
