@@ -41,7 +41,7 @@ func (d *Docker) registry() registry.Registry {
 
 func (d *Docker) cicd() cicd.CiCd {
 	if d.CiCd == nil {
-		return cicd.Instance
+		return cicd.Instance()
 	}
 	return d.CiCd
 }

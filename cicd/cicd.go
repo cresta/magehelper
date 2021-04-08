@@ -1,6 +1,8 @@
 package cicd
 
 import (
+	"sync"
+
 	"github.com/cresta/magehelper/env"
 )
 
@@ -8,7 +10,9 @@ type registry struct {
 	constructors []Constructor
 }
 
+var mu sync.Mutex
 var globalRegistry registry
+var globalInstance CiCd
 
 type Constructor func() (CiCd, error)
 
@@ -16,14 +20,18 @@ func Register(constructor func() (CiCd, error)) {
 	globalRegistry.constructors = append(globalRegistry.constructors, constructor)
 }
 
-var Instance CiCd
-
-func init() {
+func Instance() CiCd {
+	mu.Lock()
+	defer mu.Unlock()
+	if globalInstance != nil {
+		return globalInstance
+	}
 	var err error
-	Instance, err = Create()
+	globalInstance, err = Create()
 	if err != nil {
 		panic(err)
 	}
+	return globalInstance
 }
 
 func Create() (CiCd, error) {
