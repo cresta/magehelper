@@ -7,13 +7,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cresta/magehelper/pipe"
-
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
 	"github.com/cresta/magehelper/env"
+	"github.com/cresta/magehelper/errhelp"
 	"github.com/cresta/magehelper/files"
 	"github.com/cresta/magehelper/git"
+	"github.com/cresta/magehelper/pipe"
 )
 
 func trimLen(s string, maxLen int) string {
@@ -213,4 +213,9 @@ func Build(ctx context.Context) error {
 // Rotate the buildx caches for github
 func RotateCache(ctx context.Context) error {
 	return Instance.RotateCache(ctx)
+}
+
+// Prints out the value of the image that would be built by this pipeline
+func Image(ctx context.Context) error {
+	return errhelp.SecondErr(fmt.Println(Instance.Image()))
 }
