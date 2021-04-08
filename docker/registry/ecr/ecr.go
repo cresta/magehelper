@@ -16,7 +16,7 @@ type Ecr struct {
 	AccountID        string
 }
 
-var Instance Ecr
+var Instance registry.Registry = &Ecr{}
 
 var _ registry.Registry = &Ecr{}
 
