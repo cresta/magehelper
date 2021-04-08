@@ -16,9 +16,9 @@ type Ecr struct {
 	AccountID        string
 }
 
-var Instance registry.Registry = &Ecr{}
+var Instance = &Ecr{}
 
-var _ registry.Registry = &Ecr{}
+var _ registry.Registry = Instance
 
 func (e *Ecr) defaultRegion() string {
 	if e.AwsDefaultRegion != "" {
