@@ -97,7 +97,7 @@ func (d *Docker) RecordImage() error {
 	if fileName == "" || fileName == "-" {
 		return errhelp.SecondErr(fmt.Println(image))
 	}
-	return os.WriteFile(fileName, []byte(image), 0666)
+	return os.WriteFile(fileName, []byte(image), 0600)
 }
 
 func (d *Docker) Tag() string {
