@@ -25,7 +25,7 @@ func (s *ShellCheck) Lint(ctx context.Context) error {
 	return pipe.NewPiped("docker", `run`, `--rm`, `-v`, `/h/goland/magehelper:/mnt:ro`, `koalaman/shellcheck:stable`, allSh[0]).Run(ctx)
 }
 
-// Lint all *.sh files with shellcheck
+// Run a shellcheck lint via docker against all '*.sh' files
 func Lint(ctx context.Context) error {
 	return instance.Lint(ctx)
 }

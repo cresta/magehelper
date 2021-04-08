@@ -196,17 +196,17 @@ func (d *Docker) RotateCache(ctx context.Context) error {
 	return os.Rename(to, from)
 }
 
-// Lint a dockerfile using hadolint
+// Use Hadolint to run a lint against all dockerfiles in this repository
 func Lint(ctx context.Context) error {
 	return Instance.Lint(ctx)
 }
 
-// Build the docker image
+// Run a buildx docker build
 func Build(ctx context.Context) error {
 	return Instance.Build(ctx)
 }
 
-// RotateCache will rotate the FROM and TO docker buildx caches.
+// Rotate the buildx caches for github
 func RotateCache(ctx context.Context) error {
 	return Instance.RotateCache(ctx)
 }

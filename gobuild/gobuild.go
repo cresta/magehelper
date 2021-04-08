@@ -12,7 +12,7 @@ import (
 var Instance Go
 
 type Go struct {
-	Env         env.Env
+	Env                env.Env
 	BuildMainDirectory string
 }
 
@@ -58,27 +58,27 @@ func (g *Go) Build(ctx context.Context) error {
 		Execute(ctx, nil, os.Stdout, os.Stderr)
 }
 
-// Build the current go code
+// Will build a static binary of the go program in the directory ${GOBUILD_MAIN_DIRECTORY}
 func Build(ctx context.Context) error {
 	return Instance.Build(ctx)
 }
 
-// Reformat the current go code
+// Format the code in place
 func Reformat(ctx context.Context) error {
 	return Instance.Reformat(ctx)
 }
 
-// Lint the current go code
+// Lints the current code using golangci-lint
 func Lint(ctx context.Context) error {
 	return Instance.Lint(ctx)
 }
 
-// Test the current go code
+// Run a 'go test' against all code in this repository
 func Test(ctx context.Context) error {
 	return Instance.Test(ctx)
 }
 
-// IntegrationTest run against the current library
+// Run a 'go test' with the integration flag for code in this repository
 func IntegrationTest(ctx context.Context) error {
 	return Instance.IntegrationTest(ctx)
 }
