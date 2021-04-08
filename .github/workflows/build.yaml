@@ -5,7 +5,7 @@ on: [push]
 
 jobs:
   build:
-    name: Build docker container
+    name: Run full lint checks
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
