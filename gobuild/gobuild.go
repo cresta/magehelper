@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/magefile/mage/mg"
-
 	"github.com/cresta/magehelper/env"
 	"github.com/cresta/magehelper/pipe"
 )
@@ -68,14 +66,12 @@ func Lint(ctx context.Context) error {
 	return Instance.Lint(ctx)
 }
 
-// Lint the current go code
+// Test the current go code
 func Test(ctx context.Context) error {
-	mg.Verbose()
-	mg.Debug()
 	return Instance.Test(ctx)
 }
 
-// Lint the current go code
+// IntegrationTest run against the current library
 func IntegrationTest(ctx context.Context) error {
 	return Instance.IntegrationTest(ctx)
 }

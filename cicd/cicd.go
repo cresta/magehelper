@@ -19,6 +19,16 @@ func Register(constructor func() (CiCd, error)) {
 	globalRegistry.constructors = append(globalRegistry.constructors, constructor)
 }
 
+var Instance CiCd
+
+func init() {
+	var err error
+	Instance, err = Create()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func Create() (CiCd, error) {
 	for _, c := range globalRegistry.constructors {
 		ci, err := c()

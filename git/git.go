@@ -8,7 +8,9 @@ import (
 
 type Git struct{}
 
-func (g Git) GitRef() string {
+var Instance Git
+
+func (g *Git) GitRef() string {
 	s, err := sh.Output("git", "symbolic-ref", "HEAD")
 	if err == nil {
 		return s
@@ -16,14 +18,14 @@ func (g Git) GitRef() string {
 	return ""
 }
 
-func (g Git) BranchName(ref string) string {
+func (g *Git) BranchName(ref string) string {
 	if strings.HasPrefix(ref, "refs/heads/") {
 		return strings.TrimPrefix(ref, "refs/heads/")
 	}
 	return ""
 }
 
-func (g Git) GitSHA() string {
+func (g *Git) GitSHA() string {
 	s, err := sh.Output("git", "rev-parse", "--verify", "HEAD")
 	if err == nil {
 		return s
@@ -31,7 +33,7 @@ func (g Git) GitSHA() string {
 	return ""
 }
 
-func (g Git) RemoteRepository() string {
+func (g *Git) RemoteRepository() string {
 	s, err := sh.Output("git", "config", "--get", "remote.origin.url")
 	if err != nil {
 		return ""

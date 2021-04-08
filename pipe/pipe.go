@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -45,6 +46,10 @@ func (p *PipedCmd) Pipe(cmd string, args ...string) *PipedCmd {
 	}
 	p.pipeTo = ret
 	return ret
+}
+
+func (p *PipedCmd) Run(ctx context.Context) error {
+	return p.Execute(ctx, nil, os.Stdout, os.Stderr)
 }
 
 func (p *PipedCmd) Execute(ctx context.Context, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
@@ -93,13 +98,11 @@ func (p *PipedCmd) Execute(ctx context.Context, stdin io.Reader, stdout io.Write
 		// "It is thus incorrect to call Wait before all reads from the pipe have completed"
 		// So we need to Wait for the last in the chain first
 		cmd := commands[i]
-		if err := cmd.Wait(); err != nil && waitErr == nil {
+		if err := cmd.Wait(); err != nil {
+			// We will end up returning the *last* wait error, which will be the first command of the pipes that failed
 			waitErr = err
 			withCancel()
 		}
 	}
-	if waitErr != nil {
-		return fmt.Errorf("unable to wait for commands to finish: %w", waitErr)
-	}
-	return nil
+	return waitErr
 }
