@@ -7,6 +7,8 @@ type Env struct {
 	environ func() []string
 }
 
+var Instance = &Env{}
+
 func New(getEnv func(string) string, environ func() []string) *Env {
 	return &Env{
 		getEnv:  getEnv,

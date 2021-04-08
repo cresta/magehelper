@@ -1,9 +1,6 @@
 package cicd
 
 import (
-	"strconv"
-	"time"
-
 	"github.com/cresta/magehelper/env"
 )
 
@@ -63,7 +60,7 @@ type Local struct {
 }
 
 func (l *Local) IncrementalID() string {
-	return strconv.FormatInt(time.Now().Unix(), 10)
+	return l.Env.GetDefault("BUILD_ID", "0")
 }
 
 func (l *Local) GitRef() string {

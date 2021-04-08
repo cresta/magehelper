@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/cresta/magehelper/env"
+	"github.com/google/shlex"
 	"github.com/magefile/mage/mg"
 )
 
@@ -25,6 +27,70 @@ func NewPiped(cmd string, args ...string) *PipedCmd {
 		cmd:  cmd,
 		args: args,
 	}
+}
+
+// Shell tries to be like the *sh shell to create a piped command.  It will, after splitting the string, run os.Expand
+// on the parts.  It works correctly for things like this
+//
+//  Shell("echo hi")
+//  Shell("GOOS=linux go build")
+//  Shell("docker run -it ubuntu")
+//  Shell("docker run -v $HOME/.aws:/root/.aws:ro ubuntu")
+//
+// It will not work like bash for things like this
+//
+//  Shell("echo '$HOME'")
+//
+// Since it will first split echo into $HOME, and then escape the HOME
+func Shell(fullLine string) *PipedCmd {
+	ret, err := ShellWithError(fullLine)
+	if err != nil {
+		panic(err)
+	}
+	return ret
+}
+
+func ShellWithError(fullLine string) (*PipedCmd, error) {
+	parts, err := shlex.Split(fullLine)
+	if err != nil {
+		return nil, err
+	}
+	// look for environment assignments at the front
+	envAssignments := make([]string, 0, len(parts))
+	envMap := make(map[string]string)
+	for len(parts) > 0 {
+		first := parts[0]
+		envSplit := strings.SplitN(first, "=", 2)
+		if len(envSplit) != 2 {
+			break
+		}
+		if len(envSplit[0]) == 0 {
+			break
+		}
+		envAssignments = append(envAssignments, first)
+		envMap[envSplit[0]] = envSplit[1]
+		parts = parts[1:]
+	}
+	if len(parts) == 0 {
+		return nil, fmt.Errorf("bad command line %s", fullLine)
+	}
+	prog := parts[0]
+	// Run environment expansion on all the arguments
+	args := parts[1:]
+	for idx := range args {
+		args[idx] = os.Expand(args[idx], func(s string) string {
+			if v, exists := envMap[s]; exists {
+				return v
+			}
+			return env.Instance.Get(s)
+		})
+	}
+
+	return &PipedCmd{
+		cmd:  prog,
+		args: args,
+		env:  env.Instance.AddEnv(envAssignments...),
+	}, nil
 }
 
 func (p *PipedCmd) WithEnv(e []string) *PipedCmd {
