@@ -91,6 +91,15 @@ func (d *Docker) Repository() string {
 	return "unknown/unknown"
 }
 
+func (d *Docker) RecordImage() error {
+	fileName := d.Env.Get("DOCKER_IMAGE_FILE")
+	image := Instance.Image()
+	if fileName == "" || fileName == "-" {
+		return errhelp.SecondErr(fmt.Println(image))
+	}
+	return os.WriteFile(fileName, []byte(image), 0600)
+}
+
 func (d *Docker) Tag() string {
 	ref := d.cicd().GitRef()
 	if ref == "" {
@@ -215,7 +224,7 @@ func RotateCache(ctx context.Context) error {
 	return Instance.RotateCache(ctx)
 }
 
-// Prints out the value of the image that would be built by this pipeline
-func Image(ctx context.Context) error {
-	return errhelp.SecondErr(fmt.Println(Instance.Image()))
+// Record the image to a file (defined by DOCKER_IMAGE_FILE) or to stdout
+func RecordImage(ctx context.Context) error {
+	return Instance.RecordImage()
 }
