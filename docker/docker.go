@@ -142,7 +142,11 @@ func (d *Docker) Build(ctx context.Context) error {
 		args = append(args, "-f", df)
 	}
 	args = append(args, fmt.Sprintf("--cache-to=type=local,dest=%s", cacheTo), "-t", image, d.Env.GetDefault("DOCKER_BUILD_ROOT", "."))
-	return pipe.NewPiped("docker", args...).Run(ctx)
+	if err := pipe.NewPiped("docker", args...).Run(ctx); err != nil {
+		return err
+	}
+	fmt.Println("Build docker image:", image)
+	return nil
 }
 
 func (d *Docker) Lint(ctx context.Context) error {
