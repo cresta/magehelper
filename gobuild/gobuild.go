@@ -13,7 +13,14 @@ var Instance Go
 
 type Go struct {
 	Env         env.Env
-	BuildBinary string
+	BuildMainDirectory string
+}
+
+func (g *Go) buildMainDirectory() string {
+	if g.BuildMainDirectory != "" {
+		return g.BuildMainDirectory
+	}
+	return g.Env.Get("GOBUILD_MAIN_DIRECTORY")
 }
 
 func (g *Go) Lint(ctx context.Context) error {
@@ -43,10 +50,10 @@ func (g *Go) Reformat(ctx context.Context) error {
 }
 
 func (g *Go) Build(ctx context.Context) error {
-	if g.BuildBinary == "" {
+	if g.buildMainDirectory() == "" {
 		return fmt.Errorf("unset build target: change mage file")
 	}
-	return pipe.NewPiped("go", "build", "-o", "main", "-ldflags", `'-extldflags "-f no-PIC -static"'`, "-tags", "'osusergo netgo static_build'", g.BuildBinary).
+	return pipe.NewPiped("go", "build", "-o", "main", "-ldflags", `-extldflags "-f no-PIC -static"`, "-tags", "osusergo netgo static_build", g.buildMainDirectory()).
 		WithEnv(g.Env.AddEnv("GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=0")).
 		Execute(ctx, nil, os.Stdout, os.Stderr)
 }
