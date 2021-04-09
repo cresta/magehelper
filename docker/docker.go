@@ -149,7 +149,7 @@ func (d *Docker) alsoTagLatest() bool {
 
 // Build a docker image using buildx
 func (d *Docker) Build(ctx context.Context) error {
-	return d.BuildWithArgs(ctx, BuildArgs{})
+	return d.BuildWithConfig(ctx, BuildConfig{})
 }
 
 type BuildConfig struct {
