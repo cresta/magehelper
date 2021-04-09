@@ -149,12 +149,24 @@ func (d *Docker) alsoTagLatest() bool {
 
 // Build a docker image using buildx
 func (d *Docker) Build(ctx context.Context) error {
+	return d.BuildWithArgs(ctx, BuildArgs{})
+}
+
+type BuildConfig struct {
+	BuildArgs []string
+}
+
+// Build a docker image using buildx
+func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
 	image := d.Image()
 	args := []string{"buildx", "build"}
 	if d.Env.Get("DOCKER_PUSH") == "true" {
 		args = append(args, "--push")
 	} else {
 		args = append(args, "--load")
+	}
+	for _, a := range config.BuildArgs {
+		args = append(args, "--build-arg", a)
 	}
 	if d.alsoTagLatest() {
 		args = append(args, "-t", d.ImageWithTag("latest"))
