@@ -2,7 +2,6 @@ package ecr
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
@@ -37,7 +36,7 @@ func (e *Ghcr) Username() string {
 }
 
 func (e *Ghcr) ContainerRegistry() string {
-	return fmt.Sprintf("ghcr.io")
+	return "ghcr.io"
 }
 
 func (e *Ghcr) Login(ctx context.Context) error {
