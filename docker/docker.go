@@ -134,6 +134,19 @@ func (d *Docker) BuildxCacheTo() string {
 	return d.Env.GetDefault("DOCKER_BUILDX_TO", "/tmp/.buildx-cache-new")
 }
 
+// If DOCKER_LATEST_BRANCH is set, any pushes to that branch will also get a "latest" tag built and pushed
+func (d *Docker) alsoTagLatest() bool {
+	latestBranchName := d.Env.Get("DOCKER_LATEST_BRANCH")
+	if latestBranchName == "" {
+		return false
+	}
+	ref := d.cicd().GitRef()
+	if ref == "" {
+		ref = d.git().GitRef()
+	}
+	return d.git().BranchName(ref) == latestBranchName
+}
+
 // Build a docker image using buildx
 func (d *Docker) Build(ctx context.Context) error {
 	image := d.Image()
@@ -143,7 +156,7 @@ func (d *Docker) Build(ctx context.Context) error {
 	} else {
 		args = append(args, "--load")
 	}
-	if d.Env.Get("DOCKER_TAG_LATEST") == "true" {
+	if d.alsoTagLatest() {
 		args = append(args, "-t", d.ImageWithTag("latest"))
 	}
 	cacheFrom := d.BuildxCacheFrom()
