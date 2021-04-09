@@ -54,11 +54,15 @@ func (d *Docker) git() *git.Git {
 }
 
 func (d *Docker) Image() string {
+	return d.ImageWithTag(d.Tag())
+}
+
+func (d *Docker) ImageWithTag(tag string) string {
 	reg := d.registry().ContainerRegistry()
 	if reg != "" {
 		reg += "/"
 	}
-	return fmt.Sprintf("%s%s:%s", reg, d.Repository(), d.Tag())
+	return fmt.Sprintf("%s%s:%s", reg, d.Repository(), tag)
 }
 
 func (d *Docker) SanitizeTag(s string) string {
@@ -138,6 +142,9 @@ func (d *Docker) Build(ctx context.Context) error {
 		args = append(args, "--push")
 	} else {
 		args = append(args, "--load")
+	}
+	if d.Env.Get("DOCKER_TAG_LATEST") == "true" {
+		args = append(args, "-t", d.ImageWithTag("latest"))
 	}
 	cacheFrom := d.BuildxCacheFrom()
 	cacheTo := d.BuildxCacheTo()
