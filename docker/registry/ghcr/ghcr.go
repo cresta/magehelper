@@ -1,4 +1,4 @@
-package ecr
+package ghcr
 
 import (
 	"context"
