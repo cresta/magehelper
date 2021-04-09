@@ -12,7 +12,7 @@ import (
 )
 
 type Ghcr struct {
-	Env              env.Env
+	Env env.Env
 }
 
 var Instance = &Ghcr{}
@@ -24,7 +24,7 @@ func (e *Ghcr) Password() string {
 }
 
 func (e *Ghcr) Username() string {
-	if d := e.Env.Get("DOCKER_USERNAME");d != "" {
+	if d := e.Env.Get("DOCKER_USERNAME"); d != "" {
 		return d
 	}
 	if d := e.Env.Get("GITHUB_REPOSITORY"); d != "" {
