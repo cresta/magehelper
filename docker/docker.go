@@ -23,7 +23,7 @@ func trimLen(s string, maxLen int) string {
 	return s[0:maxLen]
 }
 
-var Instance Docker
+var Instance = &Docker{}
 
 type Docker struct {
 	Env      env.Env
