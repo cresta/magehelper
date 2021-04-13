@@ -17,6 +17,11 @@ func IsDir(pathFile string) bool {
 	return true
 }
 
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
 // AllWithExtension returns all file names with the extension 'ext' from the current working directory.  They are returned
 // relative to that directory
 func AllWithExtension(ext string) ([]string, error) {
