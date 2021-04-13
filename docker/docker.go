@@ -168,7 +168,7 @@ func (d *Docker) ImageExists(ctx context.Context, tag string) bool {
 // Build a docker image using buildx
 func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
 	image := d.Image()
-	if d.ImageExists(ctx, image) {
+	if !d.IgnoreFastBuild && d.ImageExists(ctx, image) {
 		if mg.Verbose() {
 			log.Println("Skipping docker build: image already exists: ", image)
 		}
