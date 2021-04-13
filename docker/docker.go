@@ -3,12 +3,9 @@ package docker
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/magefile/mage/mg"
 
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
@@ -169,12 +166,6 @@ func (d *Docker) ImageExists(ctx context.Context, tag string) bool {
 func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
 	pushBuiltImage := d.Env.Get("DOCKER_PUSH") == "true"
 	image := d.Image()
-	if !pushBuiltImage && !d.IgnoreFastBuild && d.ImageExists(ctx, image) {
-		if mg.Verbose() {
-			log.Println("Skipping docker build: image already exists: ", image)
-		}
-		return nil
-	}
 	args := []string{"buildx", "build"}
 	if pushBuiltImage {
 		args = append(args, "--push")
