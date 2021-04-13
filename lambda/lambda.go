@@ -3,6 +3,8 @@ package lambda
 import (
 	"context"
 
+	"github.com/magefile/mage/mg"
+
 	"github.com/cresta/magehelper/docker"
 	"github.com/cresta/magehelper/env"
 	"github.com/cresta/magehelper/pipe"
@@ -23,6 +25,7 @@ func (l *Lambda) docker() *docker.Docker {
 }
 
 func (l *Lambda) RunContainer(ctx context.Context) error {
+	mg.Deps(docker.Build)
 	return pipe.Shell("docker run -p 9000:8080 " + l.docker().Image() + " /main").Run(ctx)
 }
 
