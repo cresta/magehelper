@@ -27,7 +27,7 @@ func (l *Lambda) docker() *docker.Docker {
 }
 
 func (l *Lambda) RunContainer(ctx context.Context) error {
-	mg.Deps(docker.Build)
+	mg.CtxDeps(ctx, docker.Build)
 	args := []string{
 		"run", "-p", "9000:8080",
 	}
