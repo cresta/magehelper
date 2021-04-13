@@ -3,9 +3,12 @@ package docker
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/magefile/mage/mg"
 
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
@@ -26,10 +29,11 @@ func trimLen(s string, maxLen int) string {
 var Instance = &Docker{}
 
 type Docker struct {
-	Env      env.Env
-	Registry registry.Registry
-	CiCd     cicd.CiCd
-	Git      *git.Git
+	Env             env.Env
+	Registry        registry.Registry
+	CiCd            cicd.CiCd
+	Git             *git.Git
+	IgnoreFastBuild bool
 }
 
 func (d *Docker) registry() registry.Registry {
@@ -156,11 +160,23 @@ type BuildConfig struct {
 	BuildArgs []string
 }
 
+func (d *Docker) ImageExists(ctx context.Context, tag string) bool {
+	err := pipe.Shell("docker inspect --type=image "+tag).Execute(ctx, nil, nil, nil)
+	return err == nil
+}
+
 // Build a docker image using buildx
 func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
+	pushBuiltImage := d.Env.Get("DOCKER_PUSH") == "true"
 	image := d.Image()
+	if !pushBuiltImage && !d.IgnoreFastBuild && d.ImageExists(ctx, image) {
+		if mg.Verbose() {
+			log.Println("Skipping docker build: image already exists: ", image)
+		}
+		return nil
+	}
 	args := []string{"buildx", "build"}
-	if d.Env.Get("DOCKER_PUSH") == "true" {
+	if pushBuiltImage {
 		args = append(args, "--push")
 	} else {
 		args = append(args, "--load")
