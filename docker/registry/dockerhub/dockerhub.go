@@ -10,8 +10,6 @@ import (
 	"github.com/cresta/magehelper/pipe"
 )
 
-var Username string
-
 type DockerHub struct {
 	Env env.Env
 }
@@ -21,10 +19,7 @@ func (d *DockerHub) Password() string {
 }
 
 func (d *DockerHub) Username() string {
-	if d := d.Env.GetDefault("DOCKERHUB_USERNAME", Username); d != "" {
-		return d
-	}
-	return "PLEASE-SET-USERNAME"
+	return d.Env.GetDefault("DOCKERHUB_USERNAME", d.Env.GetDefault("DOCKER_USERNAME", "PLEASE-SET-USERNAME"))
 }
 
 func (d *DockerHub) ContainerRegistry() string {

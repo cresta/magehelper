@@ -1,10 +1,30 @@
 package env
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 type Env struct {
 	getEnv  func(string) string
 	environ func() []string
+}
+
+// Default will set a default key/value inside the environment only if value is empty string.  It returns a function
+// you can optionally later call to set the environment back to the original, unset value.
+func Default(key string, value string) func() {
+	if _, exists := os.LookupEnv(key); exists {
+		if err := os.Setenv(key, value); err != nil {
+			fmt.Printf("unable to set environment variable %s = %s (%s)\n", key, value, err)
+			return func() {}
+		}
+		return func() {
+			if err := os.Unsetenv(key); err != nil {
+				fmt.Printf("Unable to restore default environment: %s\n", err)
+			}
+		}
+	}
+	return func() {}
 }
 
 var Instance = &Env{}

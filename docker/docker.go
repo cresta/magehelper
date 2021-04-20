@@ -24,13 +24,6 @@ func trimLen(s string, maxLen int) string {
 
 var Instance = &Docker{}
 
-var DockerRepository string
-var DockerCacheRepository string
-var DockerLatestBranch = "master"
-var DockerMutableTags string
-var DockerFile string
-var DockerBuildRoot = "."
-
 type Docker struct {
 	Env             env.Env
 	Registry        registry.Registry
@@ -105,8 +98,8 @@ func (d *Docker) SanitizeTag(s string) string {
 }
 
 func (d *Docker) Repository() string {
-	if d.Env.GetDefault("DOCKER_REPOSITORY", DockerRepository) != "" {
-		return d.Env.GetDefault("DOCKER_REPOSITORY", DockerRepository)
+	if d.Env.Get("DOCKER_REPOSITORY") != "" {
+		return d.Env.Get("DOCKER_REPOSITORY")
 	}
 	if r := d.cicd().GitRepository(); r != "" {
 		return r
@@ -118,8 +111,8 @@ func (d *Docker) Repository() string {
 }
 
 func (d *Docker) CacheRepository() string {
-	if d.Env.GetDefault("DOCKER_CACHE_REPOSITORY", DockerCacheRepository) != "" {
-		return d.Env.GetDefault("DOCKER_CACHE_REPOSITORY", DockerCacheRepository)
+	if d.Env.Get("DOCKER_CACHE_REPOSITORY") != "" {
+		return d.Env.Get("DOCKER_CACHE_REPOSITORY")
 	}
 	return d.Repository()
 }
@@ -153,7 +146,7 @@ func (d *Docker) Tag() string {
 }
 
 func (d *Docker) latestBranch() string {
-	return d.Env.GetDefault("DOCKER_LATEST_BRANCH", DockerLatestBranch)
+	return d.Env.GetDefault("DOCKER_LATEST_BRANCH", "master")
 }
 
 func (d *Docker) remoteCacheTags(forceLatest bool) []string {
@@ -225,7 +218,7 @@ func (d *Docker) BuildxCacheTo() string {
 }
 
 func (d *Docker) allowsMutableTags() bool {
-	return d.Env.GetDefault("DOCKER_MUTABLE_TAGS", DockerMutableTags) == "true"
+	return d.Env.Get("DOCKER_MUTABLE_TAGS") == "true"
 }
 
 // If DOCKER_MUTABLE_TAGS is true, then we also build mutable tags (tags that are likely to be overridden)
@@ -258,8 +251,8 @@ func (d *Docker) ImageExists(ctx context.Context, tag string) bool {
 // Build a docker image using buildx
 func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
 	pushBuiltImage := d.Env.Get("DOCKER_PUSH") == "true"
-	pushRemoteCache := d.Env.Get("DOCKER_REMOTE_CACHE") == "true"
-	pushLocalCache := !pushRemoteCache
+	pushRemoteCache := d.Env.Get("DOCKER_PUSH_REMOTE_CACHE") == "true"
+	pushLocalCache := d.Env.Get("DOCKER_PUSH_LOCAL_CACHE") == "true"
 	image := d.Image()
 	args := []string{"buildx", "build"}
 	if pushBuiltImage {
@@ -281,7 +274,7 @@ func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error 
 	if files.IsDir(cacheTo) {
 		args = append(args, fmt.Sprintf("--cache-from=type=local,src=%s", cacheTo))
 	}
-	if df := d.Env.GetDefault("DOCKER_FILE", DockerFile); df != "" {
+	if df := d.Env.Get("DOCKER_FILE"); df != "" {
 		args = append(args, "-f", df)
 	}
 	args = append(args, d.remoteCacheFrom()...)
@@ -294,7 +287,7 @@ func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error 
 		// Use local cache
 		args = append(args, fmt.Sprintf("--cache-to=type=local,dest=%s", cacheTo))
 	}
-	args = append(args, "-t", image, d.Env.GetDefault("DOCKER_BUILD_ROOT", DockerBuildRoot))
+	args = append(args, "-t", image, d.Env.GetDefault("DOCKER_BUILD_ROOT", "."))
 	if err := pipe.NewPiped("docker", args...).Run(ctx); err != nil {
 		return err
 	}
