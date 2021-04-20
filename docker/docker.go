@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
@@ -28,6 +27,7 @@ var Instance = &Docker{}
 type Docker struct {
 	Env             env.Env
 	Registry        registry.Registry
+	CacheRegistry   registry.Registry
 	CiCd            cicd.CiCd
 	Git             *git.Git
 	IgnoreFastBuild bool
@@ -38,6 +38,16 @@ func (d *Docker) registry() registry.Registry {
 		return registry.Instance
 	}
 	return d.Registry
+}
+
+func (d *Docker) cacheRegistry() registry.Registry {
+	if d.CacheRegistry != nil {
+		return d.CacheRegistry
+	}
+	if registry.CacheInstance != nil {
+		return registry.CacheInstance
+	}
+	return d.registry()
 }
 
 func (d *Docker) cicd() cicd.CiCd {
@@ -59,7 +69,11 @@ func (d *Docker) Image() string {
 }
 
 func (d *Docker) ImageWithTag(tag string) string {
-	reg := d.registry().ContainerRegistry()
+	return d.ImageWithTagForRegistry(d.registry(), tag)
+}
+
+func (d *Docker) ImageWithTagForRegistry(regist registry.Registry, tag string) string {
+	reg := regist.ContainerRegistry()
 	if reg != "" {
 		reg += "/"
 	}
@@ -96,6 +110,13 @@ func (d *Docker) Repository() string {
 	return "unknown/unknown"
 }
 
+func (d *Docker) CacheRepository() string {
+	if d.Env.Get("DOCKER_CACHE_REPOSITORY") != "" {
+		return d.Env.Get("DOCKER_REPOSITORY")
+	}
+	return d.Repository()
+}
+
 func (d *Docker) RecordImage() error {
 	fileName := d.Env.Get("DOCKER_IMAGE_FILE")
 	image := Instance.Image()
@@ -106,18 +127,15 @@ func (d *Docker) RecordImage() error {
 }
 
 func (d *Docker) Tag() string {
-	ref := d.cicd().GitRef()
-	if ref == "" {
-		ref = d.git().GitRef()
-	}
-	if strings.HasPrefix(ref, "refs/tags/") {
-		t := strings.TrimPrefix(ref, "refs/tags/")
-		if len(t) > 0 && t[0] == 'v' {
-			t = t[1:]
+	if tagName := d.tagName(); tagName != "" {
+		// Note: Should upgrade this to only happen if it matches the regex v[0-9]+
+		if len(tagName) > 0 && tagName[0] == 'v' {
+			tagName = tagName[1:]
 		}
-		return d.SanitizeTag(t)
+		return d.SanitizeTag(tagName)
 	}
-	branch := trimLen(d.git().BranchName(ref), 60)
+	// 128 max characters.  Reserve 64 for the branch name to give room for the rest
+	branch := trimLen(d.branchName(), 64)
 	id := fmt.Sprintf("%s.%s", d.cicd().Name(), d.cicd().IncrementalID())
 	sha := d.cicd().GitSHA()
 	if sha == "" {
@@ -125,6 +143,66 @@ func (d *Docker) Tag() string {
 	}
 	sha = trimLen(sha, 7)
 	return d.SanitizeTag(fmt.Sprintf("%s-%s-%s", branch, id, sha))
+}
+
+func (d *Docker) latestBranch() string {
+	return d.Env.GetDefault("DOCKER_LATEST_BRANCH", "master")
+}
+
+func (d *Docker) remoteCacheTags(forceLatest bool) []string {
+	// build args for --cache-to= for a remote
+	var cacheToTags []string
+	branchName := d.branchName()
+	if forceLatest || branchName == d.latestBranch() {
+		cacheToTags = append(cacheToTags, "latest")
+	}
+	if branchName != "" && branchName != "latest" {
+		cacheToTags = append(cacheToTags, branchName)
+	}
+	ret := make([]string, 0, len(cacheToTags))
+	// Turn them into sanitized tags
+	// This format allows reusing the cache repository
+	for _, cacheToTag := range cacheToTags {
+		cacheTag := d.SanitizeTag(fmt.Sprintf("cache-%s-%s", d.Repository(), cacheToTag))
+		ret = append(ret, d.ImageWithTagForRegistry(d.cacheRegistry(), cacheTag))
+	}
+	return ret
+}
+
+func (d *Docker) remoteCacheFrom() []string {
+	cacheFromTags := d.remoteCacheTags(true)
+	ret := make([]string, 0, len(cacheFromTags))
+	// Turn them into sanitized tags
+	for _, cacheToTag := range cacheFromTags {
+		ret = append(ret, fmt.Sprintf("--cache-from=%s", cacheToTag))
+	}
+	return ret
+}
+
+func (d *Docker) remoteCacheTo() []string {
+	cacheToTags := d.remoteCacheTags(false)
+	ret := make([]string, 0, len(cacheToTags))
+	// Turn them into sanitized tags
+	for _, cacheToTag := range cacheToTags {
+		ret = append(ret, fmt.Sprintf("--cache-to=type=registry,ref=%s,mode=max", cacheToTag))
+	}
+	return ret
+}
+
+func (d *Docker) branchName() string {
+	ref := d.cicd().GitRef()
+	if ref == "" {
+		ref = d.git().GitRef()
+	}
+	return d.git().BranchName(ref)
+}
+
+func (d *Docker) tagName() string {
+	ref := d.cicd().GitRef()
+	if ref == "" {
+		ref = d.git().GitRef()
+	}
+	return d.git().TagName(ref)
 }
 
 func (d *Docker) BuildxCacheFrom() string {
@@ -135,17 +213,17 @@ func (d *Docker) BuildxCacheTo() string {
 	return d.Env.GetDefault("DOCKER_BUILDX_TO", "/tmp/.buildx-cache-new")
 }
 
-// If DOCKER_LATEST_BRANCH is set, any pushes to that branch will also get a "latest" tag built and pushed
-func (d *Docker) alsoTagLatest() bool {
-	latestBranchName := d.Env.Get("DOCKER_LATEST_BRANCH")
-	if latestBranchName == "" {
-		return false
+// If DOCKER_MUTABLE_TAGS is true, then we also build mutable tags (tags that are likely to be overridden)
+func (d *Docker) mutableBuildTags() []string {
+	if d.Env.Get("DOCKER_MUTABLE_TAGS") != "true" {
+		return nil
 	}
-	ref := d.cicd().GitRef()
-	if ref == "" {
-		ref = d.git().GitRef()
+	branchName := d.branchName()
+	ret := []string{branchName}
+	if branchName == d.latestBranch() {
+		ret = append(ret, "latest")
 	}
-	return d.git().BranchName(ref) == latestBranchName
+	return ret
 }
 
 // Build a docker image using buildx
@@ -165,6 +243,8 @@ func (d *Docker) ImageExists(ctx context.Context, tag string) bool {
 // Build a docker image using buildx
 func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
 	pushBuiltImage := d.Env.Get("DOCKER_PUSH") == "true"
+	pushRemoteCache := d.Env.Get("DOCKER_REMOTE_CACHE") == "true"
+	pushLocalCache := !pushRemoteCache
 	image := d.Image()
 	args := []string{"buildx", "build"}
 	if pushBuiltImage {
@@ -175,8 +255,8 @@ func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error 
 	for _, a := range config.BuildArgs {
 		args = append(args, "--build-arg", a)
 	}
-	if d.alsoTagLatest() {
-		args = append(args, "-t", d.ImageWithTag("latest"))
+	for _, mutableTag := range d.mutableBuildTags() {
+		args = append(args, "-t", d.ImageWithTag(mutableTag))
 	}
 	cacheFrom := d.BuildxCacheFrom()
 	cacheTo := d.BuildxCacheTo()
@@ -189,7 +269,17 @@ func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error 
 	if df := d.Env.Get("DOCKER_FILE"); df != "" {
 		args = append(args, "-f", df)
 	}
-	args = append(args, fmt.Sprintf("--cache-to=type=local,dest=%s", cacheTo), "-t", image, d.Env.GetDefault("DOCKER_BUILD_ROOT", "."))
+	args = append(args, d.remoteCacheFrom()...)
+	if pushRemoteCache {
+		// Two remote caches are "latest" and the branch name
+		// Push this cache to the branch name, and also latest if we're on the main branch
+		args = append(args, d.remoteCacheTo()...)
+	}
+	if pushLocalCache {
+		// Use local cache
+		args = append(args, fmt.Sprintf("--cache-to=type=local,dest=%s", cacheTo))
+	}
+	args = append(args, "-t", image, d.Env.GetDefault("DOCKER_BUILD_ROOT", "."))
 	if err := pipe.NewPiped("docker", args...).Run(ctx); err != nil {
 		return err
 	}

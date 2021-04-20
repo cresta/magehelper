@@ -98,20 +98,31 @@ func (p *PipedCmd) WithEnv(e []string) *PipedCmd {
 	return p
 }
 
-func (p *PipedCmd) Pipe(cmd string, args ...string) *PipedCmd {
+func (p *PipedCmd) Shell(fullLine string) *PipedCmd {
+	next := Shell(fullLine)
+	return p.PipeTo(next)
+}
+
+func (p *PipedCmd) PipeTo(into *PipedCmd) *PipedCmd {
 	if p.readFrom != nil {
 		panic("pipe already set to read")
 	}
 	if p.pipeTo != nil {
 		panic("pipe already set to pipe to")
 	}
-	ret := &PipedCmd{
-		cmd:      cmd,
-		args:     args,
-		readFrom: p,
+	if into.readFrom != nil {
+		panic("into is already set to read")
 	}
-	p.pipeTo = ret
-	return ret
+	into.readFrom = p
+	p.pipeTo = into
+	return into
+}
+
+func (p *PipedCmd) Pipe(cmd string, args ...string) *PipedCmd {
+	return p.PipeTo(&PipedCmd{
+		cmd:  cmd,
+		args: args,
+	})
 }
 
 func (p *PipedCmd) Run(ctx context.Context) error {

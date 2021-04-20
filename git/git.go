@@ -25,6 +25,13 @@ func (g *Git) BranchName(ref string) string {
 	return ""
 }
 
+func (g *Git) TagName(ref string) string {
+	if strings.HasPrefix(ref, "refs/tags/") {
+		return strings.TrimPrefix(ref, "refs/tags/")
+	}
+	return ""
+}
+
 func (g *Git) GitSHA() string {
 	s, err := sh.Output("git", "rev-parse", "--verify", "HEAD")
 	if err == nil {
