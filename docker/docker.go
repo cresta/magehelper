@@ -163,7 +163,7 @@ func (d *Docker) remoteCacheTags(forceLatest bool) []string {
 	// Turn them into sanitized tags
 	// This format allows reusing the cache repository
 	for _, cacheToTag := range cacheToTags {
-		cacheTag := d.SanitizeTag(fmt.Sprintf("cache-%s-%s", d.Repository(), cacheToTag))
+		cacheTag := d.SanitizeTag(fmt.Sprintf("cache-%s-%s", d.CacheRepository(), cacheToTag))
 		ret = append(ret, d.ImageWithTagForRegistry(d.cacheRegistry(), cacheTag))
 	}
 	return ret

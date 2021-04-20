@@ -33,6 +33,11 @@ func (d *DockerHub) Login(ctx context.Context) error {
 	return pipe.NewPiped("docker", "login", "--username", d.Username(), "--password-stdin", d.ContainerRegistry()).Execute(ctx, strings.NewReader(d.Password()), os.Stdout, os.Stderr)
 }
 
+// Login will log into dockerhub using password inside DOCKERHUB_PASSWORD
+func Login(ctx context.Context) error {
+	return Instance.Login(ctx)
+}
+
 var Instance = &DockerHub{}
 
 var _ registry.Registry = Instance
