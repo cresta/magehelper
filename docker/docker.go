@@ -150,15 +150,18 @@ func (d *Docker) latestBranch() string {
 	return d.Env.GetDefault("DOCKER_LATEST_BRANCH", "master")
 }
 
-func (d *Docker) remoteCacheTags(forceLatest bool) []string {
+//  If requireOnlyOne is set, then at most one result is returned. THis resolves a limitation of --cache-to
+func (d *Docker) remoteCacheTags(requireOnlyOne bool) []string {
 	// build args for --cache-to= for a remote
 	var cacheToTags []string
 	branchName := d.branchName()
-	if forceLatest || branchName == d.latestBranch() {
+	if branchName == d.latestBranch() {
 		cacheToTags = append(cacheToTags, "latest")
 	}
 	if branchName != "" && branchName != "latest" {
-		cacheToTags = append(cacheToTags, branchName)
+		if !requireOnlyOne || len(cacheToTags) < 1 {
+			cacheToTags = append(cacheToTags, branchName)
+		}
 	}
 	ret := make([]string, 0, len(cacheToTags))
 	// Turn them into sanitized tags
@@ -171,7 +174,7 @@ func (d *Docker) remoteCacheTags(forceLatest bool) []string {
 }
 
 func (d *Docker) remoteCacheFrom() []string {
-	cacheFromTags := d.remoteCacheTags(true)
+	cacheFromTags := d.remoteCacheTags(false)
 	ret := make([]string, 0, len(cacheFromTags))
 	// Turn them into sanitized tags
 	for _, cacheToTag := range cacheFromTags {
@@ -185,7 +188,10 @@ func (d *Docker) remoteCacheFrom() []string {
 }
 
 func (d *Docker) remoteCacheTo() []string {
-	cacheToTags := d.remoteCacheTags(false)
+	// error: failed to solve: rpc error: code = Unknown desc = specifying multiple cache exports is not supported currently
+	// Docker only supports one right now.
+	// https://github.com/moby/buildkit/blob/9fa286c08bc936542d55488992de3da8453d4323/control/control.go#L253
+	cacheToTags := d.remoteCacheTags(true)
 	ret := make([]string, 0, len(cacheToTags))
 	// Turn them into sanitized tags
 	for _, cacheToTag := range cacheToTags {
