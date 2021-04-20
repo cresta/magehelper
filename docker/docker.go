@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
@@ -217,8 +218,13 @@ func (d *Docker) BuildxCacheTo() string {
 	return d.Env.GetDefault("DOCKER_BUILDX_TO", "/tmp/.buildx-cache-new")
 }
 
+func isTrue(s string) bool {
+	res, err := strconv.ParseBool(s)
+	return res && err == nil
+}
+
 func (d *Docker) allowsMutableTags() bool {
-	return d.Env.Get("DOCKER_MUTABLE_TAGS") == "true"
+	return isTrue(d.Env.Get("DOCKER_MUTABLE_TAGS"))
 }
 
 // If DOCKER_MUTABLE_TAGS is true, then we also build mutable tags (tags that are likely to be overridden)
@@ -250,9 +256,9 @@ func (d *Docker) ImageExists(ctx context.Context, tag string) bool {
 
 // Build a docker image using buildx
 func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
-	pushBuiltImage := d.Env.Get("DOCKER_PUSH") == "true"
-	pushRemoteCache := d.Env.Get("DOCKER_PUSH_REMOTE_CACHE") == "true"
-	pushLocalCache := d.Env.Get("DOCKER_PUSH_LOCAL_CACHE") == "true"
+	pushBuiltImage := isTrue(d.Env.Get("DOCKER_PUSH"))
+	pushRemoteCache := isTrue(d.Env.Get("DOCKER_PUSH_REMOTE_CACHE"))
+	pushLocalCache := isTrue(d.Env.Get("DOCKER_PUSH_LOCAL_CACHE"))
 	image := d.Image()
 	args := []string{"buildx", "build"}
 	if pushBuiltImage {
