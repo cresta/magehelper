@@ -183,6 +183,10 @@ func (d *Docker) remoteCacheFrom() []string {
 	for _, cacheToTag := range cacheFromTags {
 		ret = append(ret, fmt.Sprintf("--cache-from=%s", cacheToTag))
 	}
+	// Also use any mutable tags as possible caches
+	for _, mutableTag := range d.mutableBuildTags() {
+		ret = append(ret, fmt.Sprintf("--cache-from=%s", d.ImageWithTag(mutableTag)))
+	}
 	return ret
 }
 
