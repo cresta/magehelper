@@ -69,15 +69,15 @@ func (d *Docker) Image() string {
 }
 
 func (d *Docker) ImageWithTag(tag string) string {
-	return d.ImageWithTagForRegistry(d.registry(), tag)
+	return d.ImageWithTagForRegistry(d.registry(), d.Repository(), tag)
 }
 
-func (d *Docker) ImageWithTagForRegistry(regist registry.Registry, tag string) string {
+func (d *Docker) ImageWithTagForRegistry(regist registry.Registry, repository string, tag string) string {
 	reg := regist.ContainerRegistry()
 	if reg != "" {
 		reg += "/"
 	}
-	return fmt.Sprintf("%s%s:%s", reg, d.Repository(), tag)
+	return fmt.Sprintf("%s%s:%s", reg, repository, tag)
 }
 
 func (d *Docker) SanitizeTag(s string) string {
@@ -112,7 +112,7 @@ func (d *Docker) Repository() string {
 
 func (d *Docker) CacheRepository() string {
 	if d.Env.Get("DOCKER_CACHE_REPOSITORY") != "" {
-		return d.Env.Get("DOCKER_REPOSITORY")
+		return d.Env.Get("DOCKER_CACHE_REPOSITORY")
 	}
 	return d.Repository()
 }
@@ -163,8 +163,8 @@ func (d *Docker) remoteCacheTags(forceLatest bool) []string {
 	// Turn them into sanitized tags
 	// This format allows reusing the cache repository
 	for _, cacheToTag := range cacheToTags {
-		cacheTag := d.SanitizeTag(fmt.Sprintf("cache-%s-%s", d.CacheRepository(), cacheToTag))
-		ret = append(ret, d.ImageWithTagForRegistry(d.cacheRegistry(), cacheTag))
+		cacheTag := d.SanitizeTag(fmt.Sprintf("cache-%s-%s", d.Repository(), cacheToTag))
+		ret = append(ret, d.ImageWithTagForRegistry(d.cacheRegistry(), d.CacheRepository(), cacheTag))
 	}
 	return ret
 }
