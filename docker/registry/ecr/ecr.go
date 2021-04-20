@@ -13,7 +13,6 @@ import (
 type Ecr struct {
 	Env              env.Env
 	AwsDefaultRegion string
-	AccountID        string
 }
 
 var Instance = &Ecr{}
@@ -28,9 +27,6 @@ func (e *Ecr) defaultRegion() string {
 }
 
 func (e *Ecr) accountID() string {
-	if e.AccountID != "" {
-		return e.AccountID
-	}
 	return e.Env.GetDefault("AWS_ACCOUNT_ID", "0")
 }
 

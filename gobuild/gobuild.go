@@ -6,21 +6,42 @@ import (
 	"os"
 
 	"github.com/cresta/magehelper/env"
+	"github.com/cresta/magehelper/files"
 	"github.com/cresta/magehelper/pipe"
 )
 
 var Instance Go
 
 type Go struct {
-	Env                env.Env
-	BuildMainDirectory string
+	Env env.Env
 }
 
 func (g *Go) buildMainDirectory() string {
-	if g.BuildMainDirectory != "" {
-		return g.BuildMainDirectory
+	if dir := g.Env.Get("GOBUILD_MAIN_DIRECTORY"); dir != "" {
+		return dir
 	}
-	return g.Env.Get("GOBUILD_MAIN_DIRECTORY")
+	// Try to guess it. Should be something like ./cmd/<X> if X exists and is a directory
+	if !files.IsDir("./cmd") {
+		return ""
+	}
+	entries, err := os.ReadDir("./cmd")
+	if err != nil {
+		return ""
+	}
+	finalReturn := ""
+	for _, ent := range entries {
+		if !ent.IsDir() {
+			continue
+		}
+		if ent.Name() == "." || ent.Name() == ".." {
+			continue
+		}
+		if finalReturn != "" {
+			return ""
+		}
+		finalReturn = "./cmd/" + ent.Name()
+	}
+	return finalReturn
 }
 
 func (g *Go) Lint(ctx context.Context) error {
