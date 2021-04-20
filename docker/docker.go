@@ -183,9 +183,9 @@ func (d *Docker) remoteCacheFrom() []string {
 	for _, cacheToTag := range cacheFromTags {
 		ret = append(ret, fmt.Sprintf("--cache-from=%s", cacheToTag))
 	}
-	// Also use any mutable tags as possible caches
-	for _, mutableTag := range d.mutableBuildTags() {
-		ret = append(ret, fmt.Sprintf("--cache-from=%s", d.ImageWithTag(mutableTag)))
+	if d.allowsMutableTags() {
+		ret = append(ret, fmt.Sprintf("--cache-from=%s", d.ImageWithTag("latest")))
+		ret = append(ret, fmt.Sprintf("--cache-from=%s", d.ImageWithTag(d.branchName())))
 	}
 	return ret
 }
@@ -224,9 +224,13 @@ func (d *Docker) BuildxCacheTo() string {
 	return d.Env.GetDefault("DOCKER_BUILDX_TO", "/tmp/.buildx-cache-new")
 }
 
+func (d *Docker) allowsMutableTags() bool {
+	return d.Env.GetDefault("DOCKER_MUTABLE_TAGS", DockerMutableTags) == "true"
+}
+
 // If DOCKER_MUTABLE_TAGS is true, then we also build mutable tags (tags that are likely to be overridden)
 func (d *Docker) mutableBuildTags() []string {
-	if d.Env.GetDefault("DOCKER_MUTABLE_TAGS", DockerMutableTags) != "true" {
+	if !d.allowsMutableTags() {
 		return nil
 	}
 	branchName := d.branchName()
