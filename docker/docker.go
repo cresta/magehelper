@@ -155,7 +155,7 @@ func (d *Docker) remoteCacheTags(requireOnlyOne bool) []string {
 	// build args for --cache-to= for a remote
 	var cacheToTags []string
 	branchName := d.branchName()
-	if branchName == d.latestBranch() {
+	if branchName == d.latestBranch() && branchName != "" {
 		cacheToTags = append(cacheToTags, "latest")
 	}
 	if branchName != "" && branchName != "latest" {
@@ -182,7 +182,9 @@ func (d *Docker) remoteCacheFrom() []string {
 	}
 	if d.allowsMutableTags() {
 		ret = append(ret, fmt.Sprintf("--cache-from=%s", d.ImageWithTag("latest")))
-		ret = append(ret, fmt.Sprintf("--cache-from=%s", d.ImageWithTag(d.branchName())))
+		if branchName := d.branchName(); branchName != "" {
+			ret = append(ret, fmt.Sprintf("--cache-from=%s", d.ImageWithTag(d.branchName())))
+		}
 	}
 	return ret
 }
@@ -238,9 +240,12 @@ func (d *Docker) mutableBuildTags() []string {
 	if !d.allowsMutableTags() {
 		return nil
 	}
+	var ret []string
 	branchName := d.branchName()
-	ret := []string{branchName}
-	if branchName == d.latestBranch() {
+	if branchName != "" {
+		ret = append(ret, branchName)
+	}
+	if branchName == d.latestBranch() && branchName != "" {
 		ret = append(ret, "latest")
 	}
 	return ret
