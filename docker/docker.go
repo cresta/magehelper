@@ -319,7 +319,7 @@ func (d *Docker) Push(ctx context.Context) error {
 		tags = append(tags, d.ImageWithTag(mutableTag))
 	}
 	for _, tag := range tags {
-		if err := pipe.NewPiped("docker", "push ", tag).Run(ctx); err != nil {
+		if err := pipe.NewPiped("docker", "push", tag).Run(ctx); err != nil {
 			return fmt.Errorf("unable to push tag %s: %w", tag, err)
 		}
 	}
