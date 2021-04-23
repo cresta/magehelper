@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/env"
@@ -25,12 +24,17 @@ func init() {
 }
 
 func (f *Factory) New() (cicd.CiCd, error) {
-	if f.Env.Get("GITHUB_ACTIONS") == "true" {
+	if isGithubActions(f.Env) {
 		return &GithubActions{
 			Env: f.Env,
 		}, nil
 	}
 	return nil, nil
+}
+
+func isGithubActions(env *env.Env) bool {
+	const trueStr = "true"
+	return env.Get("CI") == trueStr && env.Get("GITHUB_ACTIONS") == trueStr
 }
 
 var _ cicd.CiCd = &GithubActions{}
@@ -66,7 +70,7 @@ func FreeDiskSpace(ctx context.Context) error {
 	if _, isGh := cicd.Instance().(*GithubActions); !isGh {
 		return fmt.Errorf("cicd is not set to github actions: %s", cicd.Instance().Name())
 	}
-	if os.Getenv("CI") != "true" || os.Getenv("GITHUB_ACTIONS") != "true" {
+	if !isGithubActions(nil) {
 		return errors.New("do not appear to be running inside github actions")
 	}
 	if err := pipe.NewPiped("df", "-h").Run(ctx); err != nil {
