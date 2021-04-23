@@ -66,7 +66,7 @@ func FreeDiskSpace(ctx context.Context) error {
 	if _, isGh := cicd.Instance().(*GithubActions); !isGh {
 		return fmt.Errorf("cicd is not set to github actions: %s", cicd.Instance().Name())
 	}
-	if os.Getenv("CI") != "true" || os.Getenv("GITHUB_ACTIONS") != "" {
+	if os.Getenv("CI") != "true" || os.Getenv("GITHUB_ACTIONS") != "true" {
 		return errors.New("do not appear to be running inside github actions")
 	}
 	if err := pipe.NewPiped("df", "-h").Run(ctx); err != nil {
