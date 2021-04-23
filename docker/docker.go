@@ -312,6 +312,20 @@ func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error 
 	return nil
 }
 
+// Push assumes the images were already built and does the docker push to the remote repository
+func (d *Docker) Push(ctx context.Context) error {
+	tags := []string{d.Image()}
+	for _, mutableTag := range d.mutableBuildTags() {
+		tags = append(tags, d.ImageWithTag(mutableTag))
+	}
+	for _, tag := range tags {
+		if err := pipe.NewPiped("docker", "push ", tag).Run(ctx); err != nil {
+			return fmt.Errorf("unable to push tag %s: %w", tag, err)
+		}
+	}
+	return nil
+}
+
 func (d *Docker) Lint(ctx context.Context) error {
 	allDocker, err := files.AllWithExtension("Dockerfile")
 	if err != nil {
@@ -381,4 +395,9 @@ func RotateCache(ctx context.Context) error {
 // Record the image to a file (defined by DOCKER_IMAGE_FILE) or to stdout
 func RecordImage(ctx context.Context) error {
 	return Instance.RecordImage()
+}
+
+// Push all images.  Assumes they were already built with Build --load
+func Push(ctx context.Context) error {
+	return Instance.Push(ctx)
 }
