@@ -99,8 +99,12 @@ func (h *Helm) PushRepos(ctx context.Context) error {
 	return nil
 }
 
-func (h *Helm) repoNameForChart(s string) string {
+func (h *Helm) repoURLForChart(s string) string {
 	return h.s3individualChartPrefix() + s
+}
+
+func (h *Helm) repoNameForChart(s string) string {
+	return h.repoNamePrefix() + s
 }
 
 func (h *Helm) S3Setup(ctx context.Context) error {
@@ -132,15 +136,15 @@ func (h *Helm) S3Setup(ctx context.Context) error {
 		return err
 	}
 	for _, c := range validCharts {
-		repoName := h.repoNamePrefix() + c
+		repoName := h.repoNameForChart(c)
 		if containsRepo(repos, repoName) {
 			continue
 		}
-		if err := pipe.NewPiped("helm", "repo", "add", repoName, h.repoNameForChart(c)).Run(ctx); err != nil {
+		if err := pipe.NewPiped("helm", "repo", "add", repoName, h.repoURLForChart(c)).Run(ctx); err != nil {
 			return err
 		}
 		if h.initS3Repo() {
-			if err := pipe.NewPiped("helm", "s3", "init", h.repoNameForChart(c)).Run(ctx); err != nil {
+			if err := pipe.NewPiped("helm", "s3", "init", h.repoURLForChart(c)).Run(ctx); err != nil {
 				fmt.Printf("uanble to init s3 repo.  This is sometimes OK if the repo is already init: %v\n", err)
 			}
 		}
