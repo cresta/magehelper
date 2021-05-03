@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/magefile/mage/mg"
 	"os"
 	"path/filepath"
 	"strings"
@@ -184,6 +185,9 @@ func (h *Helm) listRepos(ctx context.Context) ([]Repo, error) {
 
 func (h *Helm) listValidCharts(ctx context.Context) ([]string, error) {
 	if !files.IsDir("./charts") {
+		if mg.Verbose() {
+			fmt.Println("unable to find any charts")
+		}
 		return nil, nil
 	}
 	// helm repo add cresta s3://cresta-helm-charts
@@ -199,6 +203,9 @@ func (h *Helm) listValidCharts(ctx context.Context) ([]string, error) {
 		}
 		if e.Name() == "." || e.Name() == ".." {
 			continue
+		}
+		if mg.Verbose() {
+			fmt.Println("Looking for chart at", "./charts/" + e.Name() + "Chart.yaml")
 		}
 		// Go into this directory and set it up
 		if !files.FileExists("./charts/" + e.Name() + "Chart.yaml") {
