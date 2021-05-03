@@ -18,6 +18,7 @@ type PipedCmd struct {
 	cmd      string
 	args     []string
 	env      []string
+	dir      string
 	readFrom *PipedCmd
 	pipeTo   *PipedCmd
 }
@@ -95,6 +96,11 @@ func ShellWithError(fullLine string) (*PipedCmd, error) {
 
 func (p *PipedCmd) WithEnv(e []string) *PipedCmd {
 	p.env = e
+	return p
+}
+
+func (p *PipedCmd) WithDir(d string) *PipedCmd {
+	p.dir = d
 	return p
 }
 

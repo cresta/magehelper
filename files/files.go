@@ -1,6 +1,9 @@
 package files
 
 import (
+	"fmt"
+	"io/fs"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,7 +36,7 @@ func AllWithExtension(ext string) ([]string, error) {
 	var files []string
 	if err := filepath.Walk(pathS, func(path string, f os.FileInfo, _ error) error {
 		if !f.IsDir() {
-			if strings.ToLower(filepath.Ext(f.Name())) == ext || strings.ToLower(f.Name()) == ext {
+			if hasExt(f, ext) {
 				if rel, err := filepath.Rel(pathS, path); err == nil {
 					files = append(files, rel)
 				}
@@ -44,4 +47,26 @@ func AllWithExtension(ext string) ([]string, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+func hasExt(f fs.FileInfo, ext string) bool {
+	return strings.ToLower(filepath.Ext(f.Name())) == ext || strings.ToLower(f.Name()) == ext
+}
+
+func AllWithExtensionExactlyInDir(ext string, dir string) ([]string, error) {
+	ext = strings.ToLower(ext)
+	fi, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read directory: %w", err)
+	}
+	var ret []string
+	for _, f := range fi {
+		if f.IsDir() {
+			continue
+		}
+		if hasExt(f, ext) {
+			ret = append(ret, f.Name())
+		}
+	}
+	return ret, nil
 }
