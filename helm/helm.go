@@ -21,7 +21,7 @@ type Helm struct {
 	Env *env.Env
 }
 
-func (h *Helm) individualChartPrefix() string {
+func (h *Helm) s3individualChartPrefix() string {
 	return h.Env.Get("HELM_S3_PREFIX")
 }
 
@@ -84,7 +84,7 @@ func (h *Helm) PushRepos(ctx context.Context) error {
 		return err
 	}
 	for _, c := range validCharts {
-		existingTgz, err := files.AllWithExtensionExactlyInDir("tgz", filepath.Join("charts", c))
+		existingTgz, err := files.AllWithExtensionExactlyInDir(".tgz", filepath.Join("charts", c))
 		if err != nil {
 			return fmt.Errorf("unable to find existing tgz: %w", err)
 		}
@@ -100,10 +100,13 @@ func (h *Helm) PushRepos(ctx context.Context) error {
 }
 
 func (h *Helm) repoNameForChart(s string) string {
-	return h.individualChartPrefix() + s
+	return h.s3individualChartPrefix() + s
 }
 
 func (h *Helm) S3Setup(ctx context.Context) error {
+	if !strings.HasPrefix(h.s3individualChartPrefix(), `s3:\\`) {
+		return fmt.Errorf("no S3 prefix for chart repo.  Maybe not s3")
+	}
 	// Install s3 plugin
 	hasP, err := h.hasPlugin(ctx, "s3")
 	if err != nil {
