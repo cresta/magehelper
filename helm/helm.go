@@ -190,7 +190,6 @@ func (h *Helm) listValidCharts(ctx context.Context) ([]string, error) {
 		}
 		return nil, nil
 	}
-	// helm repo add cresta s3://cresta-helm-charts
 	// Find all charts in the charts directory
 	entries, err := os.ReadDir("./charts")
 	if err != nil {
@@ -204,11 +203,13 @@ func (h *Helm) listValidCharts(ctx context.Context) ([]string, error) {
 		if e.Name() == "." || e.Name() == ".." {
 			continue
 		}
+		path := filepath.Join("charts", e.Name(), "Chart.yaml")
 		if mg.Verbose() {
-			fmt.Println("Looking for chart at", "./charts/" + e.Name() + "Chart.yaml")
+			fmt.Println("Looking for chart at", path)
 		}
+
 		// Go into this directory and set it up
-		if !files.FileExists("./charts/" + e.Name() + "Chart.yaml") {
+		if !files.FileExists(path) {
 			continue
 		}
 		ret = append(ret, e.Name())
