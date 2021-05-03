@@ -104,7 +104,7 @@ func (h *Helm) repoNameForChart(s string) string {
 }
 
 func (h *Helm) S3Setup(ctx context.Context) error {
-	if !strings.HasPrefix(h.s3individualChartPrefix(), `s3:\\`) {
+	if !strings.HasPrefix(h.s3individualChartPrefix(), `s3://`) {
 		return fmt.Errorf("no S3 prefix for chart repo.  Maybe not s3")
 	}
 	// Install s3 plugin
