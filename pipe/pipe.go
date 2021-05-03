@@ -145,6 +145,7 @@ func (p *PipedCmd) Execute(ctx context.Context, stdin io.Reader, stdout io.Write
 		cmd := exec.CommandContext(cmdCtx, current.cmd, current.args...)
 		cmd.Stderr = stderr
 		cmd.Env = current.env
+		cmd.Dir = p.dir
 		// put the last Pipe() at the first of commands
 		commands = append([]*exec.Cmd{cmd}, commands...)
 	}
