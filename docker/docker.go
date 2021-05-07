@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/docker/registry"
@@ -299,6 +300,9 @@ func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error 
 		// Two remote caches are "latest" and the branch name
 		// Push this cache to the branch name, and also latest if we're on the main branch
 		args = append(args, d.remoteCacheTo()...)
+	}
+	for _, extraBuildArg := range strings.Split(d.Env.Get("DOCKER_EXTRA_ARGS"), " ") {
+		args = append(args, os.Expand(strings.TrimSpace(extraBuildArg), d.Env.Get))
 	}
 	if pushLocalCache {
 		// Use local cache
