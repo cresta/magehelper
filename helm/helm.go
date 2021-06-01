@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/magefile/mage/mg"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/magefile/mage/mg"
 
 	"github.com/cresta/magehelper/env"
 	"github.com/cresta/magehelper/files"
