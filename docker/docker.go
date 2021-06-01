@@ -302,6 +302,9 @@ func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error 
 		args = append(args, d.remoteCacheTo()...)
 	}
 	for _, extraBuildArg := range strings.Split(d.Env.Get("DOCKER_EXTRA_ARGS"), " ") {
+		if strings.TrimSpace(extraBuildArg) == "" {
+			continue
+		}
 		args = append(args, os.Expand(strings.TrimSpace(extraBuildArg), d.Env.Get))
 	}
 	if pushLocalCache {
