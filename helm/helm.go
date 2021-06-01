@@ -191,7 +191,7 @@ func (h *Helm) listRepos(ctx context.Context) ([]Repo, error) {
 	return ret, nil
 }
 
-func (h *Helm) listValidCharts(ctx context.Context) ([]string, error) {
+func (h *Helm) listValidCharts(_ context.Context) ([]string, error) {
 	if !files.IsDir("./charts") {
 		if mg.Verbose() {
 			fmt.Println("unable to find any charts")
@@ -244,7 +244,7 @@ func (h *Helm) listPlugins(ctx context.Context) ([]string, error) {
 		return nil, fmt.Errorf("unable to list plugins: %w", err)
 	}
 	lines := strings.Split(buf.String(), "\n")
-	var ret []string
+	ret := make([]string, 0, len(lines))
 	for idx, line := range lines {
 		if idx == 0 {
 			continue
