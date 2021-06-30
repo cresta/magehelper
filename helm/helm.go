@@ -97,7 +97,7 @@ func (h *Helm) PushRepos(ctx context.Context) error {
 			return fmt.Errorf("unable to push helm chart: %w", err)
 		}
 		if err := pipe.NewPiped("helm", "s3", "reindex", h.repoNamePrefix()).
-		WithEnv(h.Env.AddEnv("HELM_S3_MODE=3")).Run(ctx); err != nil {
+			WithEnv(h.Env.AddEnv("HELM_S3_MODE=3")).Run(ctx); err != nil {
 			return fmt.Errorf("unable to reindex helm chart: %w", err)
 		}
 	}
