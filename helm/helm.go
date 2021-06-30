@@ -96,6 +96,9 @@ func (h *Helm) PushRepos(ctx context.Context) error {
 		if err := pipe.NewPiped("helm", "s3", "push", "--ignore-if-exists", filepath.Join("charts", c, existingTgz[0]), h.repoNameForChart(c)).Run(ctx); err != nil {
 			return fmt.Errorf("unable to push helm chart: %w", err)
 		}
+		if err := pipe.NewPiped("helm", "s3", "reindex", h.repoNamePrefix()).Run(ctx); err != nil {
+			return fmt.Errorf("unable to reindex helm chart: %w", err)
+		}
 	}
 	return nil
 }
