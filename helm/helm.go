@@ -109,7 +109,6 @@ func (h *Helm) repoNameForChart(s string) string {
 }
 
 func (h *Helm) S3Setup(ctx context.Context) error {
-	os.Setenv("HELM_S3_MODE", "3")
 	if !strings.HasPrefix(h.s3individualChartPrefix(), `s3://`) {
 		return fmt.Errorf("no S3 prefix for chart repo.  Maybe not s3")
 	}
@@ -143,7 +142,8 @@ func (h *Helm) S3Setup(ctx context.Context) error {
 			continue
 		}
 		if h.initS3Repo() {
-			if err := pipe.NewPiped("helm", "s3", "init", h.repoURLForChart(c)).Run(ctx); err != nil {
+			if err := pipe.NewPiped("helm", "s3", "init", h.repoURLForChart(c)).
+				WithEnv(h.Env.AddEnv("HELM_S3_MODE=3")).Run(ctx); err != nil {
 				fmt.Printf("uanble to init s3 repo.  This is sometimes OK if the repo is already init: %v\n", err)
 			}
 		}
