@@ -15,6 +15,7 @@ import (
 	"github.com/cresta/magehelper/files"
 	"github.com/cresta/magehelper/git"
 	"github.com/cresta/magehelper/pipe"
+	gogit "github.com/go-git/go-git/v5"
 )
 
 func trimLen(s string, maxLen int) string {
@@ -147,8 +148,38 @@ func (d *Docker) Tag() string {
 	return d.SanitizeTag(fmt.Sprintf("%s-%s-%s", branch, id, sha))
 }
 
-func (d *Docker) latestBranch() string {
-	return d.Env.GetDefault("DOCKER_LATEST_BRANCH", "master")
+// latestBranch - Returns branch that should be used for DOCKER_LATEST_BRANCH
+// If DOCKER_LATEST_BRANCH is not defined, returns "main"
+// If branch "main" does not exist in repository, returns "master"
+// On any error, returns "master" to maintain original compatibility
+func (d *Docker) latestBranch() (latestBranch string) {
+	// Leaving "master" as default to maintain compatibility if checking git repo fails
+	latestBranch = d.Env.GetDefault("DOCKER_LATEST_BRANCH", "master")
+	repo, err := gogit.PlainOpen("")
+	if err != nil {
+		return
+	}
+	branches, err := repo.Branches()
+	if err != nil {
+		return
+	}
+
+	// Return main if it exists, otherwise return master to maintain compatibility
+	for {
+		branch, err := branches.Next()
+		if err != nil {
+			return
+		}
+		if branch == nil {
+			break
+		}
+		// Return "main" if that branch exists
+		if branch.Name().String() == "main" {
+			latestBranch = branch.Name().String()
+			return
+		}
+	}
+	return
 }
 
 //  If requireOnlyOne is set, then at most one result is returned. THis resolves a limitation of --cache-to
