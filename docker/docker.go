@@ -155,7 +155,7 @@ func (d *Docker) Tag() string {
 func (d *Docker) latestBranch() (latestBranch string) {
 	// Leaving "master" as default to maintain compatibility if checking git repo fails
 	latestBranch = d.Env.GetDefault("DOCKER_LATEST_BRANCH", "master")
-	repo, err := gogit.PlainOpen("")
+	repo, err := gogit.PlainOpen(".")
 	if err != nil {
 		return
 	}
