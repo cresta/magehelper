@@ -153,8 +153,13 @@ func (d *Docker) Tag() string {
 // If branch "main" does not exist in repository, returns "master"
 // On any error, returns "master" to maintain original compatibility
 func (d *Docker) latestBranch() (latestBranch string) {
+	// If a user sets DOCKER_LATEST_BRANCH that should always be respected
+	latestBranch = d.Env.Get("DOCKER_LATEST_BRANCH")
+	if latestBranch != "" {
+		return
+	}
 	// Leaving "master" as default to maintain compatibility if checking git repo fails
-	latestBranch = d.Env.GetDefault("DOCKER_LATEST_BRANCH", "master")
+	latestBranch = "master"
 	repo, err := gogit.PlainOpen(".")
 	if err != nil {
 		return
