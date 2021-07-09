@@ -145,14 +145,17 @@ func (h *Helm) S3Setup(ctx context.Context) error {
 		if containsRepo(repos, repoName) {
 			continue
 		}
-		if h.initS3Repo() {
-			if err := pipe.NewPiped("helm", "s3", "init", h.repoURLForChart(c)).
-				WithEnv(h.Env.AddEnv("HELM_S3_MODE=3")).Run(ctx); err != nil {
-				fmt.Printf("uanble to init s3 repo.  This is sometimes OK if the repo is already init: %v\n", err)
-			}
-		}
+		// Try adding the repository, if this fails, then try to initalize first
 		if err := pipe.NewPiped("helm", "repo", "add", repoName, h.repoURLForChart(c)).Run(ctx); err != nil {
-			return err
+			if h.initS3Repo() {
+				if err := pipe.NewPiped("helm", "s3", "init", h.repoURLForChart(c)).
+					WithEnv(h.Env.AddEnv("HELM_S3_MODE=3")).Run(ctx); err != nil {
+					fmt.Printf("uanble to init s3 repo.  This is sometimes OK if the repo is already init: %v\n", err)
+				}
+				if err := pipe.NewPiped("helm", "repo", "add", repoName, h.repoURLForChart(c)).Run(ctx); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	for _, s := range h.staticRepos() {
