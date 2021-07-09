@@ -145,7 +145,7 @@ func (h *Helm) S3Setup(ctx context.Context) error {
 		if containsRepo(repos, repoName) {
 			continue
 		}
-		// Try adding the repository, if this fails, then try to initalize first
+		// Try adding the repository, if this fails, then try to initialize first
 		if err := pipe.NewPiped("helm", "repo", "add", repoName, h.repoURLForChart(c)).Run(ctx); err != nil {
 			if h.initS3Repo() {
 				if err := pipe.NewPiped("helm", "s3", "init", h.repoURLForChart(c)).
