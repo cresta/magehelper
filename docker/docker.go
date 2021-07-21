@@ -18,6 +18,8 @@ import (
 	gogit "github.com/go-git/go-git/v5"
 )
 
+const oldDefaultBranch string = "master"
+
 func trimLen(s string, maxLen int) string {
 	if len(s) <= maxLen {
 		return s
@@ -159,7 +161,6 @@ func (d *Docker) latestBranch() string {
 		return dockerLatestBranch
 	}
 	// Leaving "master" as default to maintain compatibility if checking git repo fails
-	oldDefaultBranch := "master"
 	repo, err := gogit.PlainOpen(".")
 	if err != nil {
 		return oldDefaultBranch
