@@ -61,7 +61,7 @@ func (g *Go) IntegrationTest(ctx context.Context) error {
 }
 
 func (g *Go) Reformat(ctx context.Context) error {
-	err := pipe.NewPiped("gofmt", "-s", "-w", "./..").Execute(ctx, nil, os.Stdout, os.Stderr)
+	err := pipe.NewPiped("gofmt", "-s", "-w", ".").Execute(ctx, nil, os.Stdout, os.Stderr)
 	if err != nil {
 		return fmt.Errorf("unable to gofmt: %w", err)
 	}
