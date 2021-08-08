@@ -132,12 +132,16 @@ func (d *Docker) RecordImage() error {
 }
 
 func (d *Docker) Tag() string {
+	// tagPrefix and tagSuffix is useful where one repository hosts many types of image.  One example is
+	//   golang:1.17  or golang:1.17-buster
+	tagPrefix := d.Env.Get("DOCKER_TAG_PREFIX")
+	tagSuffix := d.Env.Get("DOCKER_TAG_SUFFIX")
 	if tagName := d.tagName(); tagName != "" {
 		// Note: Should upgrade this to only happen if it matches the regex v[0-9]+
 		if len(tagName) > 0 && tagName[0] == 'v' {
 			tagName = tagName[1:]
 		}
-		return d.SanitizeTag(tagName)
+		return d.SanitizeTag(fmt.Sprintf("%s%s%s", tagPrefix, tagName, tagSuffix))
 	}
 	// 128 max characters.  Reserve 64 for the branch name to give room for the rest
 	branch := trimLen(d.branchName(), 64)
@@ -147,7 +151,7 @@ func (d *Docker) Tag() string {
 		sha = d.git().GitSHA()
 	}
 	sha = trimLen(sha, 7)
-	return d.SanitizeTag(fmt.Sprintf("%s-%s-%s", branch, id, sha))
+	return d.SanitizeTag(fmt.Sprintf("%s%s-%s-%s%s", tagPrefix, branch, id, sha, tagSuffix))
 }
 
 // latestBranch - Returns branch that should be used for DOCKER_LATEST_BRANCH
