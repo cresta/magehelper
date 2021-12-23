@@ -61,10 +61,14 @@ type CiCd interface {
 	GitSHA() string
 	GitRepository() string
 	Name() string
+	AddStepOutput(key string, value string)
 }
 
 type Local struct {
 	Env *env.Env
+}
+
+func (l *Local) AddStepOutput(key string, value string) {
 }
 
 func (l *Local) IncrementalID() string {

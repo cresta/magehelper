@@ -306,12 +306,15 @@ func (d *Docker) ImageExists(ctx context.Context, tag string) bool {
 	return err == nil
 }
 
-// Build a docker image using buildx
+// BuildWithConfig will build a docker image using buildx and build configuration
 func (d *Docker) BuildWithConfig(ctx context.Context, config BuildConfig) error {
 	pushBuiltImage := isTrue(d.Env.Get("DOCKER_PUSH"))
 	pushRemoteCache := isTrue(d.Env.Get("DOCKER_PUSH_REMOTE_CACHE"))
 	pushLocalCache := isTrue(d.Env.Get("DOCKER_PUSH_LOCAL_CACHE"))
-	image := d.Image()
+	reg, repo, tag := d.registry(), d.Repository(), d.Tag()
+	d.cicd().AddStepOutput("docker_tag", d.Tag())
+	image := d.ImageWithTagForRegistry(reg, repo, tag)
+	d.cicd().AddStepOutput("docker_image", image)
 	args := []string{"buildx", "build"}
 	if pushBuiltImage {
 		args = append(args, "--push")

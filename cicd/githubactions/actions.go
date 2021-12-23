@@ -8,10 +8,12 @@ import (
 	"github.com/cresta/magehelper/cicd"
 	"github.com/cresta/magehelper/env"
 	"github.com/cresta/magehelper/pipe"
+	"github.com/sethvargo/go-githubactions"
 )
 
 type GithubActions struct {
-	Env *env.Env
+	Env     *env.Env
+	Actions *githubactions.Action
 }
 
 type Factory struct {
@@ -26,7 +28,8 @@ func init() {
 func (f *Factory) New() (cicd.CiCd, error) {
 	if isGithubActions(f.Env) {
 		return &GithubActions{
-			Env: f.Env,
+			Env:     f.Env,
+			Actions: githubactions.New(),
 		}, nil
 	}
 	return nil, nil
@@ -49,6 +52,10 @@ func (g *GithubActions) GitSHA() string {
 
 func (g *GithubActions) GitRef() string {
 	return g.Env.Get("GITHUB_REF")
+}
+
+func (g *GithubActions) AddStepOutput(key string, value string) {
+	g.Actions.SetOutput(key, value)
 }
 
 func (g *GithubActions) Name() string {

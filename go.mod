@@ -9,6 +9,7 @@ require (
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/magefile/mage v1.11.0
 	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/sethvargo/go-githubactions v0.5.0
 	github.com/stretchr/testify v1.7.0
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
