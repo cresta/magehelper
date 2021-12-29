@@ -49,7 +49,12 @@ func (g *Go) Lint(ctx context.Context) error {
 }
 
 func (g *Go) Test(ctx context.Context) error {
-	return pipe.NewPiped("go", "test", "-v", "-race", "-benchtime", "1ns", "-bench", ".", "./...").
+	args := []string{"test", "-v", "-race", "-benchtime", "1ns", "-bench", "."}
+	if profileOut := g.Env.Get("GO_COVERAGE"); profileOut != "" {
+		args = append(args, "-coverprofile", profileOut)
+	}
+	args = append(args, "./...")
+	return pipe.NewPiped("go", args...).
 		WithEnv(g.Env.AddEnv("GORACE=halt_on_error=1")).
 		Execute(ctx, nil, os.Stdout, os.Stderr)
 }
