@@ -109,6 +109,9 @@ func (h *Helm) repoURLForChart(s string) string {
 }
 
 func (h *Helm) repoNameForChart(s string) string {
+	if strings.Contains(s, "/") {
+		panic("chart name cannot contain a slash.  This is a regression in helm and will cause other problems if you continue to do this")
+	}
 	return h.repoNamePrefix() + s
 }
 
