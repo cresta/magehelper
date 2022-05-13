@@ -25,6 +25,22 @@ func FileExists(path string) bool {
 	return err == nil
 }
 
+// DirectoriesInDirectory returns all directories inside a root path (not subdirectories)
+func DirectoriesInDirectory(path string) ([]string, error) {
+	fi, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read directory: %w", err)
+	}
+	ret := make([]string, 0, len(fi))
+	for _, f := range fi {
+		if !f.IsDir() {
+			continue
+		}
+		ret = append(ret, f.Name())
+	}
+	return ret, nil
+}
+
 // AllWithExtension returns all file names with the extension 'ext' from the current working directory.  They are returned
 // relative to that directory
 func AllWithExtension(ext string) ([]string, error) {
