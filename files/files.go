@@ -31,7 +31,7 @@ func DirectoriesInDirectory(path string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to read directory: %w", err)
 	}
-	var ret []string
+	ret := make([]string, 0, len(fi))
 	for _, f := range fi {
 		if !f.IsDir() {
 			continue
