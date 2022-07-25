@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/cresta/magehelper/files"
-	"github.com/cresta/magehelper/pipe"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/cresta/magehelper/files"
+	"github.com/cresta/magehelper/pipe"
 )
 
 type Yq struct{}
