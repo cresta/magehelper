@@ -18,8 +18,8 @@ var Instance Yq
 
 func (y *Yq) Reformat(ctx context.Context, path string) error {
 	err := pipe.NewPiped("yq", "-P", "-i", path).Run(ctx)
-	if err == nil {
-		return fmt.Errorf("unable to reformat: %w", err)
+	if err != nil {
+		return fmt.Errorf("unable to reformat %s: %w", path, err)
 	}
 	return nil
 }
