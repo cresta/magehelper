@@ -44,16 +44,20 @@ func DirectoriesInDirectory(path string) ([]string, error) {
 // AllWithExtension returns all file names with the extension 'ext' from the current working directory.  They are returned
 // relative to that directory
 func AllWithExtension(ext string) ([]string, error) {
-	ext = strings.ToLower(ext)
 	pathS, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
+	return AllWithExtensionInDir(pathS, ext)
+}
+
+func AllWithExtensionInDir(dir string, ext string) ([]string, error) {
+	ext = strings.ToLower(ext)
 	var files []string
-	if err := filepath.Walk(pathS, func(path string, f os.FileInfo, _ error) error {
+	if err := filepath.Walk(dir, func(path string, f os.FileInfo, _ error) error {
 		if !f.IsDir() {
 			if hasExt(f, ext) {
-				if rel, err := filepath.Rel(pathS, path); err == nil {
+				if rel, err := filepath.Rel(dir, path); err == nil {
 					files = append(files, rel)
 				}
 			}
