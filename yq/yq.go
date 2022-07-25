@@ -40,7 +40,7 @@ func (y *Yq) VersionCheck(ctx context.Context) error {
 }
 
 func (y *Yq) ReformatYAMLDir(ctx context.Context, root string) error {
-	yamlFiles, err := files.AllWithExtensionInDir(root, "yaml")
+	yamlFiles, err := files.AllWithExtensionInDir(root, ".yaml")
 	if err != nil {
 		return fmt.Errorf("unable to read directory %s: %w", root, err)
 	}
