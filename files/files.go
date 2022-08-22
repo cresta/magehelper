@@ -2,8 +2,6 @@ package files
 
 import (
 	"fmt"
-	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,7 +25,7 @@ func FileExists(path string) bool {
 
 // DirectoriesInDirectory returns all directories inside a root path (not subdirectories)
 func DirectoriesInDirectory(path string) ([]string, error) {
-	fi, err := ioutil.ReadDir(path)
+	fi, err := os.ReadDir(path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read directory: %w", err)
 	}
@@ -69,13 +67,17 @@ func AllWithExtensionInDir(dir string, ext string) ([]string, error) {
 	return files, nil
 }
 
-func hasExt(f fs.FileInfo, ext string) bool {
+type Nameable interface {
+	Name() string
+}
+
+func hasExt(f Nameable, ext string) bool {
 	return strings.ToLower(filepath.Ext(f.Name())) == ext || strings.ToLower(f.Name()) == ext
 }
 
 func AllWithExtensionExactlyInDir(ext string, dir string) ([]string, error) {
 	ext = strings.ToLower(ext)
-	fi, err := ioutil.ReadDir(dir)
+	fi, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read directory: %w", err)
 	}
