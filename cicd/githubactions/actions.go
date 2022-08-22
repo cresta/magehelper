@@ -68,11 +68,11 @@ func (g *GithubActions) GitRepository() string {
 
 // FreeDiskSpace will free up space on disk.  There is a lot of cruft on the github actions runners.  Here are a few
 // interesting links:
-//   * https://github.com/ThewBear/free-actions
-//   * https://github.com/actions/virtual-environments/issues/709
-//   * https://github.com/NickleDave/vak/issues/341
-//   * https://github.com/flashlight/wav2letter/actions/runs/74797824/workflow
-//   * https://github.com/search?q=%22rm+-rf+%2Fusr%2Fshare%2Fdotnet%22&type=code
+//   - https://github.com/ThewBear/free-actions
+//   - https://github.com/actions/virtual-environments/issues/709
+//   - https://github.com/NickleDave/vak/issues/341
+//   - https://github.com/flashlight/wav2letter/actions/runs/74797824/workflow
+//   - https://github.com/search?q=%22rm+-rf+%2Fusr%2Fshare%2Fdotnet%22&type=code
 func FreeDiskSpace(ctx context.Context) error {
 	if _, isGh := cicd.Instance().(*GithubActions); !isGh {
 		return fmt.Errorf("cicd is not set to github actions: %s", cicd.Instance().Name())

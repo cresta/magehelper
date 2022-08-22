@@ -1,7 +1,14 @@
 name: Build Project
 
 
-on: [push]
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
 
 jobs:
   build:

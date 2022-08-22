@@ -191,7 +191,7 @@ func (d *Docker) latestBranch() string {
 	return oldDefaultBranch
 }
 
-//  If requireOnlyOne is set, then at most one result is returned. THis resolves a limitation of --cache-to
+// If requireOnlyOne is set, then at most one result is returned. THis resolves a limitation of --cache-to
 func (d *Docker) remoteCacheTags(requireOnlyOne bool) []string {
 	// build args for --cache-to= for a remote
 	var cacheToTags []string
