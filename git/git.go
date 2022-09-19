@@ -22,7 +22,7 @@ func (g *Git) BranchName(ref string) string {
 	if strings.HasPrefix(ref, "refs/heads/") {
 		return strings.TrimPrefix(ref, "refs/heads/")
 	}
-	return ""
+	return ref
 }
 
 func (g *Git) TagName(ref string) string {
