@@ -36,6 +36,21 @@ func New(getEnv func(string) string, environ func() []string) *Env {
 	}
 }
 
+func NewFromMap(e map[string]string) *Env {
+	return &Env{
+		getEnv: func(s string) string {
+			return e[s]
+		},
+		environ: func() []string {
+			r := make([]string, 0, len(e))
+			for k, v := range e {
+				r = append(r, k+"="+v)
+			}
+			return r
+		},
+	}
+}
+
 func (e *Env) osGetEnv(s string) string {
 	if e == nil || e.getEnv == nil {
 		return os.Getenv(s)
