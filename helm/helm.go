@@ -125,7 +125,7 @@ func (h *Helm) S3Setup(ctx context.Context) error {
 		return err
 	}
 	if !hasP {
-		if err := pipe.Shell("helm plugin install https://github.com/hypnoglow/helm-s3.git --version 0.13.0").Run(ctx); err != nil {
+		if err := pipe.Shell("helm plugin install https://github.com/hypnoglow/helm-s3.git --version 0.14.0").Run(ctx); err != nil {
 			return err
 		}
 	}
