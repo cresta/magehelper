@@ -12,8 +12,7 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/magefile/mage v1.13.0
 	github.com/sergi/go-diff v1.2.0 // indirect
-	github.com/sethvargo/go-envconfig v0.8.0 // indirect
-	github.com/sethvargo/go-githubactions v1.0.0
+	github.com/sethvargo/go-githubactions v1.1.0
 	github.com/stretchr/testify v1.7.0
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
