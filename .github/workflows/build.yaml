@@ -1,5 +1,4 @@
-name: Build Project
-
+name: BuildTest
 
 on:
   push:
@@ -7,24 +6,16 @@ on:
       - v*
     branches:
       - master
-      - main
   pull_request:
+    branches:
+      - master
 
 jobs:
   build:
-    name: Run full lint checks
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          version: latest
-      - name: Run Mage
-        uses: magefile/mage-action@v1
-        with:
-          version: latest
-          args: go:test
+        uses: actions/checkout@v3
+      - name: Test code
+        uses: cresta/action-lint-go-external@v1
