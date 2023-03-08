@@ -58,7 +58,7 @@ func Init(ctx context.Context, path string) (map[string]Manifest, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to run kustomize at %s: %w", path, err)
 	}
-	yamls := YAMLSeparator.Split(string(output), -1)
+	yamls := YAMLSeparator.Split(output, -1)
 	documents := make(map[string]Manifest, len(yamls))
 	for _, content := range yamls {
 		var parsed map[string]any
@@ -68,11 +68,11 @@ func Init(ctx context.Context, path string) (map[string]Manifest, error) {
 		}
 		kind, ok := getString(parsed, true, "kind")
 		if !ok {
-			return nil, fmt.Errorf("missing kind in yaml document:\n%s\n", content)
+			return nil, fmt.Errorf("missing kind in yaml document:\n%s", content)
 		}
 		name, ok := getString(parsed, true, "metadata", "name")
 		if !ok {
-			return nil, fmt.Errorf("missing metadata.name in yaml document:\n%s\n", content)
+			return nil, fmt.Errorf("missing metadata.name in yaml document:\n%s", content)
 		}
 		namespace := ""
 		if kind == "Namespace" {
@@ -80,7 +80,7 @@ func Init(ctx context.Context, path string) (map[string]Manifest, error) {
 		} else {
 			namespace, ok = getString(parsed, true, "metadata", "namespace")
 			if !ok && !namespacelessKinds[kind] {
-				return nil, fmt.Errorf("missing metadata.namespace in yaml document:\n%s\n", content)
+				return nil, fmt.Errorf("missing metadata.namespace in yaml document:\n%s", content)
 			}
 		}
 		if namespace == "" {
