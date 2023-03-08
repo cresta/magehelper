@@ -62,7 +62,10 @@ func Init(ctx context.Context, path string) (map[string]Manifest, error) {
 	documents := make(map[string]Manifest, len(yamls))
 	for _, content := range yamls {
 		var parsed map[string]any
-		yaml.Unmarshal([]byte(content), &parsed)
+		err := yaml.Unmarshal([]byte(content), &parsed)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal output:\n%s\n%w", content, err)
+		}
 		kind, ok := getString(parsed, true, "kind")
 		if !ok {
 			return nil, fmt.Errorf("missing kind in yaml document:\n%s\n", content)
