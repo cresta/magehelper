@@ -1,11 +1,6 @@
-name: BuildTest
+name: Build
 
 on:
-  push:
-    tags:
-      - v*
-    branches:
-      - master
   pull_request:
     branches:
       - master
@@ -15,7 +10,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: Checkout
         uses: actions/checkout@v3
       - name: Test code
         uses: cresta/action-lint-go-external@v1

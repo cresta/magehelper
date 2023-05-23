@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        id: token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: 267928
+          application_private_key: ${{ secrets.SEMANTIC_RELEASE_APP_PEM }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+      - name: Test code
+        uses: cresta/action-lint-go-external@v1
+      - name: Release
+        uses: cresta/action-semantic-release@main
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+          action: release
