@@ -64,7 +64,7 @@ func (y *Yq) TrimTrailingWhitespace(ctx context.Context, path string) error {
 	}
 
 	lines := strings.Split(string(input), "\n")
-	var newLines []string
+	newLines := make([]string, 0, len(lines))
 	for _, line := range lines {
 		newLines = append(newLines, strings.TrimRight(line, " "))
 	}
