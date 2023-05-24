@@ -72,7 +72,13 @@ func (y *Yq) TrimTrailingWhitespace(ctx context.Context, path string) error {
 	output := []byte(strings.Join(newLines, "\n"))
 
 	if !bytes.Equal(input, output) {
-		err = os.WriteFile(path, output, 0644)
+		// check original file for permissions
+		info, err := os.Stat(path)
+		if err != nil {
+			return fmt.Errorf("unable to stat file %s: %w", path, err)
+		}
+
+		err = os.WriteFile(path, output, info.Mode())
 		if err != nil {
 			return fmt.Errorf("unable to write file %s: %w", path, err)
 		}
