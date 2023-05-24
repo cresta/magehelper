@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -31,7 +32,7 @@ func (y *Yq) VersionCheck(ctx context.Context) error {
 		return fmt.Errorf("unable to check version: %w", err)
 	}
 	version := strings.TrimSpace(out.String())
-	rgx := `mikefarah.* version 4\..`
+	rgx := `.*mikefarah.* version v?4\..*`
 	cmp := regexp.MustCompile(rgx)
 	if !cmp.MatchString(version) {
 		return fmt.Errorf("must match version 4 (%s), saw -- %s", rgx, version)
@@ -56,6 +57,52 @@ func (y *Yq) ReformatYAMLDir(ctx context.Context, root string) error {
 	return nil
 }
 
+func (y *Yq) TrimTrailingWhitespace(ctx context.Context, path string) error {
+	input, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("unable to read file %s: %w", path, err)
+	}
+
+	lines := strings.Split(string(input), "\n")
+	newLines := make([]string, 0, len(lines))
+	for _, line := range lines {
+		newLines = append(newLines, strings.TrimRight(line, " "))
+	}
+
+	output := []byte(strings.Join(newLines, "\n"))
+
+	if !bytes.Equal(input, output) {
+		// check original file for permissions
+		info, err := os.Stat(path)
+		if err != nil {
+			return fmt.Errorf("unable to stat file %s: %w", path, err)
+		}
+
+		err = os.WriteFile(path, output, info.Mode())
+		if err != nil {
+			return fmt.Errorf("unable to write file %s: %w", path, err)
+		}
+	}
+
+	return nil
+}
+
+func (y *Yq) TrimTrailingWhitespaceForYAMLDir(ctx context.Context, root string) error {
+	yamlFiles, err := files.AllWithExtensionInDir(root, ".yaml")
+	if err != nil {
+		return fmt.Errorf("unable to read directory %s: %w", root, err)
+	}
+
+	for _, file := range yamlFiles {
+		err := y.TrimTrailingWhitespace(ctx, filepath.Join(root, file))
+		if err != nil {
+			return fmt.Errorf("unable to trim trailing whitespace %s: %w", file, err)
+		}
+	}
+
+	return nil
+}
+
 // Reformat all YAML files in PATH with YQ
 func Reformat(ctx context.Context, path string) error {
 	return Instance.Reformat(ctx, path)
@@ -69,4 +116,13 @@ func VersionCheck(ctx context.Context) error {
 // ReformatYAMLDir reformats all YAML files in PATH with YQ
 func ReformatYAMLDir(ctx context.Context, root string) error {
 	return Instance.ReformatYAMLDir(ctx, root)
+}
+
+func TrimTrailingWhitespace(ctx context.Context, path string) error {
+	return Instance.TrimTrailingWhitespace(ctx, path)
+}
+
+// TrimTrailingWhitespaceForYAMLDir trims trailing whitespace for all YAML files in PATH
+func TrimTrailingWhitespaceForYAMLDir(ctx context.Context, root string) error {
+	return Instance.TrimTrailingWhitespaceForYAMLDir(ctx, root)
 }
