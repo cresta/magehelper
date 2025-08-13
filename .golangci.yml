@@ -4,7 +4,6 @@ run:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - dupl
     - errcheck
     - goconst
@@ -16,18 +15,15 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - megacheck
     - misspell
     - nakedret
     - prealloc
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
 issues:
   exclude-rules:
     - linters:
